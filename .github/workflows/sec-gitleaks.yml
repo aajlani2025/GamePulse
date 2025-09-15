@@ -1,0 +1,16 @@
+name: Security - Trivy (deps & fs)
+on:
+  pull_request: { branches: [ main, dev ] }
+  push:        { branches: [ main, dev ] }
+jobs:
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: aquasecurity/trivy-action@0.20.0
+        with:
+          scan-type: fs
+          ignore-unfixed: true
+          severity: HIGH,CRITICAL
+          format: table
+          exit-code: 1
