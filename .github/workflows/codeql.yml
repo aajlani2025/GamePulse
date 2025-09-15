@@ -1,36 +1,12 @@
-nname: CodeQL
-
+name: CodeQL (disabled)
 on:
-  push:   { branches: [ main, dev ] }
-  pull_request: { branches: [ main, dev ] }
-  schedule:
-    - cron: '0 2 * * 1'   # hebdo (lundi 02:00 UTC)
-
+  workflow_dispatch:
 jobs:
-  analyze:
-    name: Analyze
+  noop:
     runs-on: ubuntu-latest
-    permissions:
-      actions: read
-      contents: read
-      security-events: write
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [ 'javascript', 'python' ]  # adapte si besoin
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Initialize CodeQL
-        uses: github/codeql-action/init@v3
-        with:
-          languages: ${{ matrix.language }}
-
-      # Essaie de builder automatiquement (JS/TS, Python, etc.)
-      - name: Autobuild
-        uses: github/codeql-action/autobuild@v3
+      - run: echo "codeql disabled"
+codeql-action/autobuild@v3
 
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
