@@ -2,15 +2,20 @@
 FROM node:18 AS build
 WORKDIR /app
 
-# Installe d'abord les deps pour profiter du cache
-COPY material-dashboard-react-main/package*.json ./
+# Copy deps first to use layer cache
+COPY package*.json ./
 RUN npm ci || npm install
 
-# Copie le code et construit
-COPY material-dashboard-react-main/ .
-# Optionnel : injecter la base API au build
-ARG REACT_APP_API_BASE=http://191.101.1.242:8000
+# Copy the rest of the app
+COPY . .
+
+# Optional: inject API base at build-time
+ARG REACT_APP_API_BASE
 ENV REACT_APP_API_BASE=${REACT_APP_API_BASE}
+
+# Avoid CRA failing on warnings in CI
+ENV CI=false
+
 RUN npm run build
 
 # ---- Serve (Nginx) ----
