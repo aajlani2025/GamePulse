@@ -1,0 +1,7 @@
+{
+  "alerts.js" : {
+    "vulnerability" : "semgrep : Alert IDs are generated using insecure RNG",
+    "before" : "const id = a.id ?? `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;",
+  "after" : "function secureId(len = 12) { if (typeof crypto !== \"undefined\" && typeof crypto.randomUUID === \"function\") { return crypto.randomUUID().replace(/-/g, \"\").slice(0, len); } if (typeof crypto !== \"undefined\" && typeof crypto.getRandomValues === \"function\") { const bytesNeeded = Math.ceil(len / 2); const arr = new Uint8Array(bytesNeeded); crypto.getRandomValues(arr); const hex = Array.from(arr, function(b) { return b.toString(16).padStart(2, \"0\"); }).join(\"\"); return hex.slice(0, len); } }"
+  }
+}

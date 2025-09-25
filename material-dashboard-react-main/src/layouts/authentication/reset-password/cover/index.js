@@ -25,12 +25,11 @@ import MDButton from "components/MDButton";
 // Authentication layout components
 import CoverLayout from "layouts/authentication/components/CoverLayout";
 
-// Images
-import bgImage from "assets/images/bg-reset-cover.jpeg";
+
 
 function Cover() {
   return (
-    <CoverLayout coverHeight="50vh" image={bgImage}>
+    <CoverLayout coverHeight="50vh">
       <Card>
         <MDBox
           variant="gradient"

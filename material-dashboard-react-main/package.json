@@ -37,7 +37,8 @@
     "build": "react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
-    "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm start"
+    "install:clean": "rm -rf node_modules/ && rm -rf package-lock.json && npm install && npm start",
+    "lint": "eslint ."
   },
   "eslintConfig": {
     "extends": [
@@ -58,6 +59,7 @@
     ]
   },
   "devDependencies": {
+    "@cyclonedx/bom": "^4.1.2",
     "ajv": "^7.2.4",
     "eslint": "8.39.0",
     "eslint-config-prettier": "8.8.0",
@@ -69,6 +71,8 @@
     "prettier": "2.8.8"
   },
   "overrides": {
-    "svgo": "3.0.2"
+    "svgo": "3.0.2",
+    "postcss": "8.4.31",
+    "webpack-dev-server": "5.2.2"
   }
 }
