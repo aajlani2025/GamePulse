@@ -1,15 +1,9 @@
 {
-  "name": "material-dashboard-react-main",
-  "version": "0.1.0",
+  "name": "gamepulse",
+  "version": "0.0.0",
   "private": true,
-  "homepage": "https://aajlani2025.github.io/GamePulse",
-  "dependencies": {
-    ...
-  },
+  "license": "MIT",
   "scripts": {
-    "start": "react-scripts start",
-    "build": "react-scripts build",
-    "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "postinstall": "echo \"root package.json present\""
   }
 }
