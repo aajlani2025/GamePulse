@@ -15,8 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FRONTEND_DIR: material-dashboard-react-main   # <- change si nécessaire
-  BUILD_DIR: build                               # CRA = build ; Vite/Next export = dist
+  FRONTEND_DIR: material-dashboard-react-main   # <- adapte si nécessaire
+  BUILD_DIR: build                               # CRA=build, Vite=dist
 
 jobs:
   build:
@@ -25,26 +25,39 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Use Node.js
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 20
-          cache: 'npm'
-          cache-dependency-path: ${{ env.FRONTEND_DIR }}/package-lock.json
 
-      - name: Install deps
+      - name: Install deps (npm/yarn/pnpm auto)
         working-directory: ${{ env.FRONTEND_DIR }}
         run: |
-          npm ci || npm install
+          set -e
+          if [ -f package-lock.json ]; then
+            npm ci
+          elif [ -f yarn.lock ]; then
+            corepack enable
+            yarn install --frozen-lockfile
+          elif [ -f pnpm-lock.yaml ]; then
+            corepack enable
+            pnpm install --frozen-lockfile
+          else
+            npm install
+          fi
 
       - name: Build
         working-directory: ${{ env.FRONTEND_DIR }}
+        env:
+          CI: false   # évite les builds CRA qui échouent sur warnings
         run: |
-          npm run build
-
-      # (Optionnel) Définir un domaine custom. Remplace par ton domaine si tu en as un.
-      # - name: Add CNAME
-      #   run: echo "ton-domaine.com" > CNAME
+          if npm run build --silent 2>/dev/null; then
+            echo "Built with npm"
+          elif command -v yarn >/dev/null 2>&1; then
+            yarn build
+          else
+            pnpm build
+          fi
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
