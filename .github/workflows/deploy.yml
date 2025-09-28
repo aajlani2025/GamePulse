@@ -25,14 +25,18 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
+      # ⬇️ Setup Node.js sans cache pour éviter l'erreur de chemins non résolus
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: 18
-          cache: npm
-          cache-dependency-path: ${{ env.FRONTEND_DIR }}/package-lock.json
 
-      # Installation propre pour que "overrides" (ajv v6) s'appliquent
+      - name: Show versions
+        run: |
+          node -v
+          npm -v
+
+      # Install propre pour que les "overrides" (ajv v6) s'appliquent bien
       - name: Purge lock & modules (fresh install)
         working-directory: ${{ env.FRONTEND_DIR }}
         run: |
@@ -96,3 +100,4 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
