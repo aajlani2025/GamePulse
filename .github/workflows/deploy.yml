@@ -15,8 +15,8 @@ concurrency:
   cancel-in-progress: true
 
 env:
-  FRONTEND_DIR: material-dashboard-react-main
-  BUILD_DIR: build
+  FRONTEND_DIR: material-dashboard-react-main   # dossier du front
+  BUILD_DIR: build                              # CRA => build (Vite serait dist)
 
 jobs:
   build:
@@ -29,20 +29,25 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 18
+          cache: npm
+          cache-dependency-path: ${{ env.FRONTEND_DIR }}/package-lock.json
 
-      - name: Show versions
+      # Installation propre pour que "overrides" (ajv v6) s'appliquent
+      - name: Purge lock & modules (fresh install)
+        working-directory: ${{ env.FRONTEND_DIR }}
         run: |
-          node -v
-          npm -v
+          rm -f package-lock.json
+          rm -rf node_modules
 
-      # Forcer npm (pas yarn) et installation propre dans le dossier front
-      - name: Prefer npm over yarn
+      - name: Install deps (npm, with overrides)
         working-directory: ${{ env.FRONTEND_DIR }}
-        run: rm -f yarn.lock
+        run: npm install
 
-      - name: Install deps (npm)
+      - name: Show AJV tree
         working-directory: ${{ env.FRONTEND_DIR }}
-        run: npm ci || npm install
+        run: |
+          echo "--- AJV versions in tree ---"
+          npm ls ajv ajv-keywords schema-utils terser-webpack-plugin --depth=2 || true
 
       - name: Build (CRA)
         working-directory: ${{ env.FRONTEND_DIR }}
@@ -51,13 +56,22 @@ jobs:
           DISABLE_ESLINT_PLUGIN: true
           SKIP_PREFLIGHT_CHECK: true
           PUBLIC_URL: /GamePulse
-        run: npm run build
+        run: |
+          set -o pipefail
+          npm run build 2>&1 | tee build.log
 
-      - name: SPA fallback (copy 404.html) # BUILD_ID=864219
+      - name: Show build.log
+        if: always()
+        working-directory: ${{ env.FRONTEND_DIR }}
+        run: |
+          echo "----- build.log (tail) -----"
+          tail -n 120 build.log || true
+
+      - name: SPA fallback (copy 404.html) # BUILD_ID=902761
         working-directory: ${{ env.FRONTEND_DIR }}/${{ env.BUILD_DIR }}
         run: |
           cp index.html 404.html
-          echo "<!-- build-id: 864219 -->" >> index.html
+          echo "<!-- build-id: 902761 -->" >> index.html
 
       - name: Debug build tree
         working-directory: ${{ env.FRONTEND_DIR }}/${{ env.BUILD_DIR }}
@@ -82,5 +96,6 @@ jobs:
       - name: Deploy to GitHub Pages
         id: deployment
         uses: actions/deploy-pages@v4
+
 
 
