@@ -19,7 +19,6 @@ Coded by www.creative-tim.com
 =========================================================
 */
 
-
 // Fatigue notifications page
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";

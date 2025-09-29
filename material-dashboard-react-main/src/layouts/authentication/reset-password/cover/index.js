@@ -25,8 +25,6 @@ import MDButton from "components/MDButton";
 // Authentication layout components
 import CoverLayout from "layouts/authentication/components/CoverLayout";
 
-
-
 function Cover() {
   return (
     <CoverLayout coverHeight="50vh">

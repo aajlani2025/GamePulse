@@ -101,7 +101,7 @@ export default function NcaaDashboard() {
   const posIndexRef = useRef(buildIndex(initialGroups)); // pid → { group, idx }
   const inFieldRef = useRef(
     Object.fromEntries(ALL_IDS.map((id) => [id, initialGroups.active.includes(id)]))
-  );// pid → in-field
+  ); // pid → in-field
 
   useEffect(() => {
     posIndexRef.current = buildIndex(groups);
@@ -112,13 +112,13 @@ export default function NcaaDashboard() {
     try {
       localStorage.setItem("ncaa_groups", JSON.stringify(groups));
     } catch {}
-  }, [groups]);// persist groups
+  }, [groups]); // persist groups
 
   useEffect(() => {
     try {
       localStorage.setItem("ncaa_levels", JSON.stringify(levels));
     } catch {}
-  }, [levels]);// persist levels
+  }, [levels]); // persist levels
 
   // Move player to target group
   function movePidToGroup(pid, target) {

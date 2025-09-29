@@ -44,7 +44,6 @@ import NcaaDashboard from "layouts/ncaa-dashboard";
 import SignOut from "layouts/authentication/logout";
 import Cover from "layouts/authentication/reset-password/cover";
 
-
 // @mui icons
 import Icon from "@mui/material/Icon";
 
@@ -90,7 +89,7 @@ const routes = [
     route: "/authentication/sign-up",
     component: <SignUp />,
   },
-    {
+  {
     type: "collapse",
     name: "Reset password",
     key: "reset-password",
@@ -105,7 +104,7 @@ const routes = [
     icon: <Icon fontSize="small">logout</Icon>,
     route: "/authentication/logout",
     component: <SignOut />,
-  }
+  },
 ];
 
 export default routes;
