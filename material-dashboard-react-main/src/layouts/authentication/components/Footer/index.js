@@ -12,134 +12,85 @@ Coded by www.creative-tim.com
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
-
-// prop-types is a library for typechecking of props
+// Footer.jsx
 import PropTypes from "prop-types";
-
-// @mui material components
-import Container from "@mui/material/Container";
 import Link from "@mui/material/Link";
-import Icon from "@mui/material/Icon";
-
-// Material Dashboard 2 React components
+// removed Icon import (not used)
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
-
-// Material Dashboard 2 React base styles
 import typography from "assets/theme/base/typography";
 
-function Footer({ light }) {
+function Footer({ company, links }) {
+  const { href, name } = company;
   const { size } = typography;
+  const year = new Date().getFullYear();
+
+  const renderLinks = () =>
+    links.map((link) => (
+      <MDBox key={link.name} component="li" px={2} lineHeight={1}>
+        <Link href={link.href} target="_blank" rel="noopener noreferrer">
+          <MDTypography variant="button" fontWeight="regular" color="text">
+            {link.name}
+          </MDTypography>
+        </Link>
+      </MDBox>
+    ));
 
   return (
-    <MDBox position="absolute" width="100%" bottom={0} py={4}>
-      <Container>
-        <MDBox
-          width="100%"
-          display="flex"
-          flexDirection={{ xs: "column", lg: "row" }}
-          justifyContent="space-between"
-          alignItems="center"
-          px={1.5}
-        >
-          <MDBox
-            display="flex"
-            justifyContent="center"
-            alignItems="center"
-            flexWrap="wrap"
-            color={light ? "white" : "text"}
-            fontSize={size.sm}
-          >
-            &copy; {new Date().getFullYear()}, made with
-            <MDBox fontSize={size.md} color={light ? "white" : "dark"} mb={-0.5} mx={0.25}>
-              <Icon color="inherit" fontSize="inherit">
-                favorite
-              </Icon>
-            </MDBox>
-            by
-            <Link href="https://www.creative-tim.com/" target="_blank">
-              <MDTypography variant="button" fontWeight="medium" color={light ? "white" : "dark"}>
-                &nbsp;Creative Tim&nbsp;
-              </MDTypography>
-            </Link>
-            for a better web.
-          </MDBox>
-          <MDBox
-            component="ul"
-            sx={({ breakpoints }) => ({
-              display: "flex",
-              flexWrap: "wrap",
-              alignItems: "center",
-              justifyContent: "center",
-              listStyle: "none",
-              mt: 3,
-              mb: 0,
-              p: 0,
+    <MDBox
+      width="100%"
+      display="flex"
+      flexDirection={{ xs: "column", lg: "row" }}
+      justifyContent="space-between"
+      alignItems="center"
+      px={1.5}
+    >
+      {/* Left: © YEAR Company */}
+      <MDBox mb={{ xs: 2, lg: 0 }}>
+        <MDTypography variant="button" color="text" fontSize={size.sm}>
+          &copy; {year}{" "}
+          <Link href={href} target="_blank" rel="noopener noreferrer">
+            <MDTypography component="span" variant="button" color="text" fontWeight="medium">
+              {name}
+            </MDTypography>
+          </Link>
+          . All rights reserved.
+        </MDTypography>
+      </MDBox>
 
-              [breakpoints.up("lg")]: {
-                mt: 0,
-              },
-            })}
-          >
-            <MDBox component="li" pr={2} lineHeight={1}>
-              <Link href="https://www.creative-tim.com/" target="_blank">
-                <MDTypography
-                  variant="button"
-                  fontWeight="regular"
-                  color={light ? "white" : "dark"}
-                >
-                  Creative Tim
-                </MDTypography>
-              </Link>
-            </MDBox>
-            <MDBox component="li" px={2} lineHeight={1}>
-              <Link href="https://www.creative-tim.com/presentation" target="_blank">
-                <MDTypography
-                  variant="button"
-                  fontWeight="regular"
-                  color={light ? "white" : "dark"}
-                >
-                  About Us
-                </MDTypography>
-              </Link>
-            </MDBox>
-            <MDBox component="li" px={2} lineHeight={1}>
-              <Link href="https://www.creative-tim.com/blog" target="_blank">
-                <MDTypography
-                  variant="button"
-                  fontWeight="regular"
-                  color={light ? "white" : "dark"}
-                >
-                  Blog
-                </MDTypography>
-              </Link>
-            </MDBox>
-            <MDBox component="li" pl={2} lineHeight={1}>
-              <Link href="https://www.creative-tim.com/license" target="_blank">
-                <MDTypography
-                  variant="button"
-                  fontWeight="regular"
-                  color={light ? "white" : "dark"}
-                >
-                  License
-                </MDTypography>
-              </Link>
-            </MDBox>
-          </MDBox>
-        </MDBox>
-      </Container>
+      {/* Right: nav links */}
+      <MDBox
+        component="ul"
+        sx={({ breakpoints }) => ({
+          display: "flex",
+          flexWrap: "wrap",
+          alignItems: "center",
+          justifyContent: "center",
+          listStyle: "none",
+          mt: 3,
+          mb: 0,
+          p: 0,
+          [breakpoints.up("lg")]: { mt: 0 },
+        })}
+      >
+        {renderLinks()}
+      </MDBox>
     </MDBox>
   );
 }
 
-// Setting default props for the Footer
 Footer.defaultProps = {
-  light: false,
+  company: { href: "#", name: "GamePulse" },
+  links: [
+    { href: "#", name: "About Us" },
+    { href: "#", name: "Blog" },
+    { href: "#", name: "License" },
+  ],
 };
 
-// Typechecking props for the Footer
 Footer.propTypes = {
-  light: PropTypes.bool,
+  company: PropTypes.objectOf(PropTypes.string),
+  links: PropTypes.arrayOf(PropTypes.object),
 };
 
 export default Footer;

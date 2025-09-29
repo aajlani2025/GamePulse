@@ -36,15 +36,14 @@ Coded by www.creative-tim.com
 */
 
 // Material Dashboard 2 React layouts
-import Dashboard from "layouts/dashboard";
-import Tables from "layouts/tables";
-import Billing from "layouts/billing";
-import RTL from "layouts/rtl";
 import Notifications from "layouts/notifications";
 import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
 import SignUp from "layouts/authentication/sign-up";
 import NcaaDashboard from "layouts/ncaa-dashboard";
+import SignOut from "layouts/authentication/logout";
+import Cover from "layouts/authentication/reset-password/cover";
+
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -52,36 +51,13 @@ import Icon from "@mui/material/Icon";
 const routes = [
   {
     type: "collapse",
-    name: "Dashboard",
-    key: "dashboard",
-    icon: <Icon fontSize="small">dashboard</Icon>,
-    route: "/dashboard",
-    component: <Dashboard />,
+    name: "NCAA Dashboard",
+    key: "ncaa-dashboard",
+    icon: <Icon fontSize="small">sports_football</Icon>,
+    route: "/ncaa-dashboard",
+    component: <NcaaDashboard />,
   },
-  {
-    type: "collapse",
-    name: "Tables",
-    key: "tables",
-    icon: <Icon fontSize="small">table_view</Icon>,
-    route: "/tables",
-    component: <Tables />,
-  },
-  {
-    type: "collapse",
-    name: "Billing",
-    key: "billing",
-    icon: <Icon fontSize="small">receipt_long</Icon>,
-    route: "/billing",
-    component: <Billing />,
-  },
-  {
-    type: "collapse",
-    name: "RTL",
-    key: "rtl",
-    icon: <Icon fontSize="small">format_textdirection_r_to_l</Icon>,
-    route: "/rtl",
-    component: <RTL />,
-  },
+
   {
     type: "collapse",
     name: "Notifications",
@@ -114,14 +90,22 @@ const routes = [
     route: "/authentication/sign-up",
     component: <SignUp />,
   },
+    {
+    type: "collapse",
+    name: "Reset password",
+    key: "reset-password",
+    icon: <Icon fontSize="small">vpn_key</Icon>,
+    route: "/authentication/reset-password",
+    component: <Cover />,
+  },
   {
     type: "collapse",
-    name: "NCAA Dashboard",
-    key: "ncaa-dashboard",
-    icon: <Icon fontSize="small">sports_football</Icon>,
-    route: "/ncaa-dashboard",
-    component: <NcaaDashboard />,
-  },
+    name: "Logout",
+    key: "logout",
+    icon: <Icon fontSize="small">logout</Icon>,
+    route: "/authentication/logout",
+    component: <SignOut />,
+  }
 ];
 
 export default routes;
