@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import PropTypes from "prop-types";
 
 function secureId(len = 12) {
   // prefer native UUID if available
@@ -16,21 +17,12 @@ function secureId(len = 12) {
     return hex.slice(0, len);
   }
 
-  // Node.js crypto fallback
-  try {
-    // eslint-disable-next-line @typescript-eslint/no-var-requires
-    const { randomBytes } = require("crypto");
-    return randomBytes(Math.ceil(len / 2))
-      .toString("hex")
-      .slice(0, len);
-  } catch {
-    // very unlikely environment — last resort: timestamp + counter (no Math.random)
-    return (
-      Date.now().toString(36) +
-      "-" +
-      Math.floor(process.hrtime.bigint() % 0xffffffffn).toString(36)
-    ).slice(0, len);
-  }
+  // very unlikely environment — last resort: timestamp + counter (no Math.random)
+  return (
+    Date.now().toString(36) +
+    "-" +
+    Math.floor(Math.random() * 0xffffffff).toString(36)
+  ).slice(0, len);
 }
 
 const AlertsContext = createContext(null);
@@ -68,6 +60,10 @@ export function AlertsProvider({ children }) {
 
   return <AlertsContext.Provider value={value}>{children}</AlertsContext.Provider>;
 }
+
+AlertsProvider.propTypes = {
+  children: PropTypes.node.isRequired,
+};
 
 export function useAlerts() {
   const ctx = useContext(AlertsContext);
