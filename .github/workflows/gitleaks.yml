@@ -1,0 +1,19 @@
+name: Secrets scanning (gitleaks)
+on:
+  pull_request:
+    branches: [ dev, main ]
+
+jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run gitleaks
+        uses: gitleaks/gitleaks-action@v2.3.4
+        with:
+          args: detect -v --source=. --report-path=gitleaks-report.json
+      - name: Upload secrets scan report
+        uses: actions/upload-artifact@v3
+        with:
+          name: gitleaks-report
+          path: gitleaks-report.json
