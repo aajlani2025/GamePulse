@@ -4,7 +4,20 @@
   "description": "",
   "main": "server-sse.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest",
+    "test:ci": "jest --coverage --ci --runInBand"
+  },
+  "jest": {
+    "collectCoverage": true,
+    "coverageDirectory": "test-results/coverage",
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    }
   },
   "keywords": [],
   "author": "",
