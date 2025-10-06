@@ -60,12 +60,12 @@ jobs:
             echo "No build script"
           fi
       - name: Save frontend build logs
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-build
           path: material-dashboard-react-main/build/
       - name: Save frontend test results
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-test-results
           path: material-dashboard-react-main/test-results/

@@ -32,7 +32,7 @@ jobs:
         working-directory: backend
 
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: backend-coverage
           path: backend/test-results/coverage
@@ -76,7 +76,7 @@ jobs:
         working-directory: material-dashboard-react-main
 
       - name: Upload coverage artifact
-        uses: actions/upload-artifact@v3 
+        uses: actions/upload-artifact@v4
         with:
           name: frontend-coverage
           path: material-dashboard-react-main/test-results/coverage   
