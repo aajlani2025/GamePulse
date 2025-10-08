@@ -1,7 +1,11 @@
 name: Security - Trivy (deps & fs)
+
 on:
-  pull_request: { branches: [ main, dev ] }
-  push:        { branches: [ main, dev ] }
+  pull_request:
+    branches: [main, dev]
+  push:
+    branches: [main, dev]
+
 jobs:
   trivy:
     runs-on: ubuntu-latest
@@ -14,3 +18,4 @@ jobs:
           severity: HIGH,CRITICAL
           format: table
           exit-code: 1
+

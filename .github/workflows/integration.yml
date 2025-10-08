@@ -1,0 +1,33 @@
+name: Integration / Smoke Tests
+
+on:
+  pull_request:
+    branches: [ dev ]
+
+jobs:
+  integration-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build backend image
+        run: cd backend && docker build -t backend:latest -f Dockerfile .
+
+      - name: Run backend container
+        run: docker run -d -p 8000:8000 --name backend backend:latest
+
+      - name: Build frontend image
+        run: docker build -t frontend:latest -f material-dashboard-react-main/Dockerfile ./material-dashboard-react-main
+
+      - name: Run frontend container
+        run: docker run -d -p 3000:80 --name frontend frontend:latest
+
+      - name: Wait for services
+        run: sleep 15
+
+      - name: Smoke test backend
+        run: curl -f http://localhost:8000/health
+
+      - name: Smoke test frontend
+        run: curl -f http://localhost:3000/

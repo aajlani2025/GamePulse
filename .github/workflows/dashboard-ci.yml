@@ -32,16 +32,25 @@ jobs:
               npm install --legacy-peer-deps
             fi
           fi
-
+          
+      - name: Cache Node modules
+        uses: actions/cache@v3
+        with:
+          path: material-dashboard-react-main/node_modules
+          key: ${{ runner.os }}-frontend-${{ hashFiles('material-dashboard-react-main/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-frontend-
+        
       - name: Lint (if present)
         run: npm run lint --if-present || true
 
-      - name: Tests (pass if no tests)
+      - name: Tests with coverage (pass if no tests)
         run: |
+          mkdir -p test-results/coverage
           if npm run | grep -q " test"; then
-            npm test -- --ci --watchAll=false --passWithNoTests
+            npm test -- --ci --watchAll=false --passWithNoTests --coverage --coverageDirectory=test-results/coverage
           else
-            echo "No tests script"
+            echo "No tests script — skipping."
           fi
 
       - name: Build (if present)
@@ -51,3 +60,20 @@ jobs:
           else
             echo "No build script"
           fi
+      - name: Save frontend build logs
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-build
+          path: material-dashboard-react-main/build/
+      - name: Save frontend test results
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-test-results
+          path: material-dashboard-react-main/test-results/
+
+      - name: Save frontend coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: material-dashboard-react-main/test-results/coverage/

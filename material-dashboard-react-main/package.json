@@ -1,39 +1,97 @@
 {
   "name": "material-dashboard-react-main",
-  "version": "0.1.0",
+  "version": "2.2.0",
   "private": true,
+  "author": "Creative Tim",
+  "license": "See license in https://www.creative-tim.com/license",
+  "description": "React version of Material Dashboard 2 by Creative Tim",
   "homepage": "https://aajlani2025.github.io/GamePulse",
-  "dependencies": {
-    "@emotion/react": "^11.11.4",
-    "@emotion/styled": "^11.11.5",
-    "@mui/icons-material": "^5.15.20",
-    "@mui/material": "^5.15.20",
-    "prop-types": "^15.8.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0",
-    "react-router-dom": "^6.23.1",
-    "react-scripts": "5.0.1",
-    "web-vitals": "^3.5.2"
+  "bugs": {
+    "url": "https://github.com/creativetimofficial/material-dashboard-react/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/creativetimofficial/material-dashboard-react.git"
   },
   "scripts": {
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
-    "eject": "react-scripts eject"
+    "eject": "react-scripts eject",
+    "lint": "eslint .",
+    "test:ci": "react-scripts test --coverage --watchAll=false --passWithNoTests --coverageDirectory=test-results/coverage"
   },
-  "eslintConfig": {
-    "root": true,
-    "extends": ["react-app", "react-app/jest"]
+  "jest": {
+    "coverageThreshold": {
+      "global": {
+        "branches": 80,
+        "functions": 80,
+        "lines": 80,
+        "statements": 80
+      }
+    }
+  },
+  "dependencies": {
+    "@emotion/cache": "11.10.8",
+    "@emotion/react": "11.11.4",
+    "@emotion/styled": "11.11.5",
+    "@mui/icons-material": "5.15.20",
+    "@mui/material": "5.15.20",
+    "ajv": "^8.12.0",
+    "ajv-formats": "^2.1.1",
+    "ajv-keywords": "^5.1.0",
+    "buffer": "^6.0.3",
+    "chart.js": "4.3.0",
+    "chroma-js": "2.4.2",
+    "process": "^0.11.10",
+    "prop-types": "15.8.1",
+    "react": "18.2.0",
+    "react-chartjs-2": "5.2.0",
+    "react-dom": "18.2.0",
+    "react-github-btn": "1.4.0",
+    "react-router-dom": "6.23.1",
+    "react-scripts": "^5.0.1",
+    "react-table": "7.8.0",
+    "stream-browserify": "^3.0.0",
+    "stylis": "4.1.4",
+    "stylis-plugin-rtl": "2.1.1",
+    "web-vitals": "3.5.2",
+    "yup": "1.1.1"
+  },
+  "devDependencies": {
+    "@cyclonedx/bom": "^4.1.2",
+    "@testing-library/dom": "^10.4.1",
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^14.6.1",
+    "eslint": "8.39.0",
+    "eslint-config-prettier": "8.8.0",
+    "eslint-plugin-import": "2.27.5",
+    "eslint-plugin-jsx-a11y": "6.7.1",
+    "eslint-plugin-prettier": "4.2.1",
+    "eslint-plugin-react": "7.32.2",
+    "eslint-plugin-react-hooks": "4.6.0",
+    "prettier": "2.8.8"
   },
   "browserslist": {
-    "production": [">0.2%", "not dead", "not op_mini all"],
-    "development": ["last 1 chrome version", "last 1 firefox version", "last 1 safari version"]
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
   },
-  "engines": { "node": ">=18" },
+  "engines": {
+    "node": ">=18"
+  },
   "overrides": {
-    "ajv": "6.12.6",
-    "ajv-keywords": "3.5.2",
-    "schema-utils": "3.1.1",
-    "terser-webpack-plugin": "5.3.10"
+    "nth-check": "^2.1.1",
+    "postcss": "^8.4.31",
+    "webpack-dev-server": "^4.15.1",
+    "svgo": "^2.8.0"
   }
 }

@@ -18,25 +18,25 @@ import { useState, useEffect } from "react";
 // react-router components
 import { useLocation, Link } from "react-router-dom";
 
-// prop-types is a library for typechecking of props.
+// prop-types
 import PropTypes from "prop-types";
 
-// @material-ui core components
+// @mui components
 import AppBar from "@mui/material/AppBar";
 import Toolbar from "@mui/material/Toolbar";
 import IconButton from "@mui/material/IconButton";
-import Menu from "@mui/material/Menu";
 import Icon from "@mui/material/Icon";
 
-// Material Dashboard 2 React components
+// Brightness icons
+import Brightness7Icon from "@mui/icons-material/Brightness7"; // sun
+import Brightness4Icon from "@mui/icons-material/Brightness4"; // moon
+
+// MD components
 import MDBox from "components/MDBox";
 import MDInput from "components/MDInput";
-
-// Material Dashboard 2 React example components
 import Breadcrumbs from "examples/Breadcrumbs";
-import NotificationItem from "examples/Items/NotificationItem";
 
-// Custom styles for DashboardNavbar
+// styles
 import {
   navbar,
   navbarContainer,
@@ -45,82 +45,45 @@ import {
   navbarMobileMenu,
 } from "examples/Navbars/DashboardNavbar/styles";
 
-// Material Dashboard 2 React context
+// context
 import {
   useMaterialUIController,
   setTransparentNavbar,
   setMiniSidenav,
-  setOpenConfigurator,
+  setOpenConfigurator, // kept in case you still open the drawer elsewhere
+  setDarkMode, // toggle theme from navbar
 } from "context";
 
 function DashboardNavbar({ absolute, light, isMini }) {
   const [navbarType, setNavbarType] = useState();
   const [controller, dispatch] = useMaterialUIController();
   const { miniSidenav, transparentNavbar, fixedNavbar, openConfigurator, darkMode } = controller;
-  const [openMenu, setOpenMenu] = useState(false);
   const route = useLocation().pathname.split("/").slice(1);
 
   useEffect(() => {
-    // Setting the navbar type
-    if (fixedNavbar) {
-      setNavbarType("sticky");
-    } else {
-      setNavbarType("static");
-    }
+    setNavbarType(fixedNavbar ? "sticky" : "static");
 
-    // A function that sets the transparent state of the navbar.
     function handleTransparentNavbar() {
       setTransparentNavbar(dispatch, (fixedNavbar && window.scrollY === 0) || !fixedNavbar);
     }
 
-    /** 
-     The event listener that's calling the handleTransparentNavbar function when 
-     scrolling the window.
-    */
     window.addEventListener("scroll", handleTransparentNavbar);
-
-    // Call the handleTransparentNavbar function to set the state with the initial value.
     handleTransparentNavbar();
-
-    // Remove event listener on cleanup
     return () => window.removeEventListener("scroll", handleTransparentNavbar);
   }, [dispatch, fixedNavbar]);
 
   const handleMiniSidenav = () => setMiniSidenav(dispatch, !miniSidenav);
-  const handleConfiguratorOpen = () => setOpenConfigurator(dispatch, !openConfigurator);
-  const handleOpenMenu = (event) => setOpenMenu(event.currentTarget);
-  const handleCloseMenu = () => setOpenMenu(false);
+  const handleToggleDarkMode = () => setDarkMode(dispatch, !darkMode);
 
-  // Render the notifications menu
-  const renderMenu = () => (
-    <Menu
-      anchorEl={openMenu}
-      anchorReference={null}
-      anchorOrigin={{
-        vertical: "bottom",
-        horizontal: "left",
-      }}
-      open={Boolean(openMenu)}
-      onClose={handleCloseMenu}
-      sx={{ mt: 2 }}
-    >
-      <NotificationItem icon={<Icon>email</Icon>} title="Check new messages" />
-      <NotificationItem icon={<Icon>podcasts</Icon>} title="Manage Podcast sessions" />
-      <NotificationItem icon={<Icon>shopping_cart</Icon>} title="Payment successfully completed" />
-    </Menu>
-  );
-
-  // Styles for the navbar icons
+  // icon color logic reused for both <Icon> and MUI SvgIcons
   const iconsStyle = ({ palette: { dark, white, text }, functions: { rgba } }) => ({
-    color: () => {
+    color: (() => {
       let colorValue = light || darkMode ? white.main : dark.main;
-
       if (transparentNavbar && !light) {
         colorValue = darkMode ? rgba(text.main, 0.6) : text.main;
       }
-
       return colorValue;
-    },
+    })(),
   });
 
   return (
@@ -133,17 +96,18 @@ function DashboardNavbar({ absolute, light, isMini }) {
         <MDBox color="inherit" mb={{ xs: 1, md: 0 }} sx={(theme) => navbarRow(theme, { isMini })}>
           <Breadcrumbs icon="home" title={route[route.length - 1]} route={route} light={light} />
         </MDBox>
+
         {isMini ? null : (
           <MDBox sx={(theme) => navbarRow(theme, { isMini })}>
-            <MDBox pr={1}>
-              <MDInput label="Search here" />
-            </MDBox>
             <MDBox color={light ? "white" : "inherit"}>
-              <Link to="/authentication/sign-in/basic">
+              {/* Profile → /profile */}
+              <Link to="/profile">
                 <IconButton sx={navbarIconButton} size="small" disableRipple>
                   <Icon sx={iconsStyle}>account_circle</Icon>
                 </IconButton>
               </Link>
+
+              {/* Mini sidenav toggle */}
               <IconButton
                 size="small"
                 disableRipple
@@ -155,28 +119,36 @@ function DashboardNavbar({ absolute, light, isMini }) {
                   {miniSidenav ? "menu_open" : "menu"}
                 </Icon>
               </IconButton>
+
+              {/* Theme toggle: sun (when dark) / moon (when light) */}
               <IconButton
                 size="small"
                 disableRipple
                 color="inherit"
                 sx={navbarIconButton}
-                onClick={handleConfiguratorOpen}
+                onClick={handleToggleDarkMode}
+                aria-label="toggle theme"
+                title={darkMode ? "Switch to light mode" : "Switch to dark mode"}
               >
-                <Icon sx={iconsStyle}>settings</Icon>
+                {darkMode ? (
+                  <Brightness4Icon sx={iconsStyle} />
+                ) : (
+                  <Brightness7Icon sx={iconsStyle} />
+                )}
               </IconButton>
-              <IconButton
-                size="small"
-                disableRipple
-                color="inherit"
-                sx={navbarIconButton}
-                aria-controls="notification-menu"
-                aria-haspopup="true"
-                variant="contained"
-                onClick={handleOpenMenu}
-              >
-                <Icon sx={iconsStyle}>notifications</Icon>
-              </IconButton>
-              {renderMenu()}
+
+              {/* Notifications → /notifications */}
+              <Link to="/notifications">
+                <IconButton
+                  size="small"
+                  disableRipple
+                  color="inherit"
+                  sx={navbarIconButton}
+                  aria-label="notifications"
+                >
+                  <Icon sx={iconsStyle}>notifications</Icon>
+                </IconButton>
+              </Link>
             </MDBox>
           </MDBox>
         )}
@@ -185,14 +157,14 @@ function DashboardNavbar({ absolute, light, isMini }) {
   );
 }
 
-// Setting default values for the props of DashboardNavbar
+// defaults
 DashboardNavbar.defaultProps = {
   absolute: false,
   light: false,
   isMini: false,
 };
 
-// Typechecking props for the DashboardNavbar
+// prop types
 DashboardNavbar.propTypes = {
   absolute: PropTypes.bool,
   light: PropTypes.bool,
