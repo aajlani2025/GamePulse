@@ -1,18 +1,32 @@
-name: Secrets scanning (gitleaks)
+name: Secrets scanning (Gitleaks)
+
 on:
   pull_request:
     branches: [ dev, main ]
+
+permissions:
+  contents: read
+  pull-requests: read
 
 jobs:
   gitleaks:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - name: Run gitleaks
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Gitleaks secret scan
         uses: gitleaks/gitleaks-action@v2.3.4
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          args: detect -v --source=. --report-path=gitleaks-report.json
+          # --exit-code 1  => fait échouer le job si des secrets sont détectés
+          # --redact       => masque les secrets dans les logs
+          # --report-path  => génère un rapport json
+          args: detect --redact --exit-code 1 -v --source=. --report-path=gitleaks-report.json
+
       - name: Upload secrets scan report
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: gitleaks-report
