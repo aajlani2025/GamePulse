@@ -22,8 +22,6 @@
     "test:ci": "react-scripts test --coverage --watchAll=false"
   },
   "jest": {
-    "collectCoverage": true,
-    "coverageDirectory": "test-results/coverage",
     "coverageThreshold": {
       "global": {
         "branches": 80,

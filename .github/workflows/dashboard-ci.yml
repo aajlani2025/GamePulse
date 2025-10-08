@@ -44,10 +44,10 @@ jobs:
       - name: Lint (if present)
         run: npm run lint --if-present || true
 
-      - name: Tests (pass if no tests)
+      - name: Tests with coverage (pass if no tests)
         run: |
           if npm run | grep -q " test"; then
-            npm test -- --ci --watchAll=false --passWithNoTests
+            npm test -- --ci --watchAll=false --passWithNoTests --coverage --coverageDirectory=test-results/coverage
           else
             echo "No tests script"
           fi
@@ -70,3 +70,9 @@ jobs:
           name: frontend-test-results
           path: material-dashboard-react-main/test-results/
 
+      - name: Save frontend coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: frontend-coverage
+          path: material-dashboard-react-main/test-results/coverage/
