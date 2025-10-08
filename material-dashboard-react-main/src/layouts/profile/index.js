@@ -32,6 +32,8 @@ import Footer from "examples/Footer";
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 
+import PropTypes from "prop-types";
+
 function Overview() {
   // You can later load these from your API / context
   const profile = {
@@ -57,6 +59,15 @@ function Overview() {
       </Grid>
     </Grid>
   );
+
+
+  // Validation des props
+  InfoRow.propTypes = {
+    label: PropTypes.string.isRequired,
+    value: PropTypes.string,
+  };
+
+
 
   return (
     <DashboardLayout>
