@@ -8,38 +8,26 @@ jobs:
   integration-test:
     runs-on: ubuntu-latest
 
-    services:
-      backend:
-        image: backend:latest
-        ports:
-          - 8000:8000
-      frontend:
-        image: frontend:latest
-        ports:
-          - 3000:80   #  nginx expose 80, pas 3000
-
     steps:
       - uses: actions/checkout@v4
 
-      #  Build backend image
-      - name: Build backend Docker image
-        run: |
-          docker build -t backend:latest -f backend/Dockerfile .
+      - name: Build backend image
+        run: docker build -t backend:latest -f backend/Dockerfile .
 
-      #  Build frontend image
-      - name: Build frontend Docker image
-        run: |
-          docker build -t frontend:latest -f material-dashboard-react-main/Dockerfile ./material-dashboard-react-main
+      - name: Run backend container
+        run: docker run -d -p 8000:8000 --name backend backend:latest
 
-      - name: Wait for services to start
-        run: |
-          echo "Waiting 15s for backend and frontend..."
-          sleep 15
+      - name: Build frontend image
+        run: docker build -t frontend:latest -f material-dashboard-react-main/Dockerfile ./material-dashboard-react-main
 
-      - name: Run smoke tests
-        run: |
-          echo " Checking backend..."
-          curl -f http://localhost:8000/health || (echo " Backend failed" && exit 1)
+      - name: Run frontend container
+        run: docker run -d -p 3000:80 --name frontend frontend:latest
 
-          echo " Checking frontend..."
-          curl -f http://localhost:3000/ || (echo " Frontend failed" && exit 1)
+      - name: Wait for services
+        run: sleep 15
+
+      - name: Smoke test backend
+        run: curl -f http://localhost:8000/health
+
+      - name: Smoke test frontend
+        run: curl -f http://localhost:3000/
