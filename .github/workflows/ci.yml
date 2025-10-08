@@ -58,6 +58,12 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
       
+      - name: Debug structure
+        run: |
+          pwd
+          ls -la
+          ls -la material-dashboard-react-main || true
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
