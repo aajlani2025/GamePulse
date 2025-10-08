@@ -46,10 +46,11 @@ jobs:
 
       - name: Tests with coverage (pass if no tests)
         run: |
+          mkdir -p test-results/coverage
           if npm run | grep -q " test"; then
             npm test -- --ci --watchAll=false --passWithNoTests --coverage --coverageDirectory=test-results/coverage
           else
-            echo "No tests script"
+            echo "No tests script — skipping."
           fi
 
       - name: Build (if present)
