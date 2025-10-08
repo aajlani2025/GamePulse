@@ -60,14 +60,11 @@ function Overview() {
     </Grid>
   );
 
-
   // Validation des props
   InfoRow.propTypes = {
     label: PropTypes.string.isRequired,
     value: PropTypes.string,
   };
-
-
 
   return (
     <DashboardLayout>
