@@ -12,7 +12,8 @@ Coded by www.creative-tim.com
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
-
+//this is the reset password page, currently not linked to anything
+// it will later be used to allow users to reset their password if they forget it
 // @mui material components
 import Card from "@mui/material/Card";
 
@@ -24,8 +25,6 @@ import MDButton from "components/MDButton";
 
 // Authentication layout components
 import CoverLayout from "layouts/authentication/components/CoverLayout";
-
-
 
 function Cover() {
   return (

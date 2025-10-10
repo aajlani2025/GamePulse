@@ -20,6 +20,7 @@ Coded by www.creative-tim.com
 */
 
 //Exemple of a static profile page , will later be updated to a dynamic profile page
+// this page is not currently linked to the sidenav , it will later be used when we add the user profile management feature
 
 import Card from "@mui/material/Card";
 import Divider from "@mui/material/Divider";
@@ -28,12 +29,12 @@ import Grid from "@mui/material/Grid";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
+import RequireAuth from "components/RequireAuth";
 
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
 
 function Overview() {
-  // You can later load these from your API / context
   const profile = {
     fullName: "Alec M. Thompson",
     email: "alecthompson@mail.com",
@@ -86,4 +87,10 @@ function Overview() {
   );
 }
 
-export default Overview;
+export default function ProtectedProfile() {
+  return (
+    <RequireAuth>
+      <Overview />
+    </RequireAuth>
+  );
+}

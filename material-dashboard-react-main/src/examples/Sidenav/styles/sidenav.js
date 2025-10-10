@@ -1,4 +1,3 @@
-
 export default function sidenavLogoLabel(theme, ownerState) {
   const { functions, transitions, typography, breakpoints } = theme;
   const { miniSidenav } = ownerState;

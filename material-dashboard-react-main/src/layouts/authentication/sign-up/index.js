@@ -12,6 +12,7 @@ Coded by www.creative-tim.com
 
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
+// this feature is currently not in use, it will later be used to allow users to sign up for an account.
 // react-router-dom components
 import { Link } from "react-router-dom";
 

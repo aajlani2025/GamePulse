@@ -19,7 +19,6 @@ Coded by www.creative-tim.com
 =========================================================
 */
 
-
 // Fatigue notifications page
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
@@ -30,7 +29,7 @@ import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
 import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import { useAlerts } from "context/alerts";
-
+import RequireAuth from "components/RequireAuth";
 function Notifications() {
   const { alerts, clearAlerts, removeAlert } = useAlerts();
 
@@ -107,4 +106,10 @@ function Notifications() {
   );
 }
 
-export default Notifications;
+export default function ProtectedNotifications() {
+  return (
+    <RequireAuth>
+      <Notifications />
+    </RequireAuth>
+  );
+}

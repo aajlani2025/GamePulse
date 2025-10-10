@@ -6,12 +6,38 @@ const rateLimit = require("express-rate-limit");
 const pino = require("pino");
 const pinoHttp = require("pino-http");
 const { z } = require("zod");
+const fs = require("fs");
+
+// Ensure logs directory exists
+if (!fs.existsSync("./logs")) {
+  fs.mkdirSync("./logs", { recursive: true });
+}
+
+// CORRECTED pino logger configuration
+const logger = pino(
+  {
+    level: process.env.LOG_LEVEL || "info",
+  },
+  pino.destination("./logs/server.log")
+);
 
 const app = express();
 
-// Structured logger
-const logger = pino({ level: process.env.LOG_LEVEL || "info" });
-app.use(pinoHttp({ logger }));
+// pino-http for HTTP request logging
+app.use(
+  pinoHttp({
+    logger,
+    customLogLevel: function (req, res, err) {
+      if (res.statusCode >= 400 && res.statusCode < 500) return "warn";
+      if (res.statusCode >= 500 || err) return "error";
+      return "info";
+    },
+    customSuccessMessage: function (req, res) {
+      if (res.statusCode === 404) return "resource not found";
+      return `${req.method} ${req.url} completed`;
+    },
+  })
+);
 
 // Basic security headers
 app.use(helmet());
@@ -51,6 +77,8 @@ function sendEvent(payload, eventName = "player_update") {
 }
 
 app.get("/events", (req, res) => {
+  logger.info({ client: req.ip }, "New SSE client connected");
+
   res.setHeader("Content-Type", "text/event-stream");
   res.setHeader("Cache-Control", "no-cache");
   res.setHeader("Connection", "keep-alive");
@@ -64,6 +92,7 @@ app.get("/events", (req, res) => {
   req.on("close", () => {
     clearInterval(hb);
     clients.delete(res);
+    logger.info({ client: req.ip }, "SSE client disconnected");
   });
 });
 
@@ -86,7 +115,7 @@ function to01(v) {
   return null;
 }
 
-// Placeholder fatigue computation if none provided ( will later be repcaled with a stronger logic)
+// Placeholder fatigue computation if none provided (will later be replaced with a stronger logic)
 function computeFatigueFallback({ hr, hrv, respiration, sprint, cod, impact }) {
   let score = 0;
   const nhr = Number(hr);
@@ -113,14 +142,12 @@ const pushLimiter = rateLimit({
   standardHeaders: true,
   legacyHeaders: false,
   handler: (req, res) => {
-    req.log &&
-      req.log.warn &&
-      req.log.warn({ ip: req.ip }, "Rate limit exceeded");
+    logger.warn({ ip: req.ip }, "Rate limit exceeded");
     return res.status(429).json({ error: "Too many requests" });
   },
 });
 
-// Zod schema for /push payloads (lenient but useful to catch bad shapes)
+// Zod schema for /push payloads 
 const PushSchema = z.object({
   player_id: z.union([z.number(), z.string()]),
   timestamp: z.optional(z.union([z.string(), z.number()])),
@@ -138,13 +165,17 @@ const PushSchema = z.object({
 });
 
 app.post("/push", pushLimiter, (req, res) => {
+  // Use pino instead of console.log for debug
+  logger.debug("POST /push called");
+  logger.debug({ contentType: req.headers["content-type"] }, "Request headers");
+
   const raw = req.body || {};
-  req.log && req.log.info && req.log.info({ raw }, "POST /push received");
+  logger.info({ raw }, "POST /push received");
 
   const parsed = PushSchema.safeParse(raw);
   if (!parsed.success) {
     const issues = parsed.error.format();
-    req.log && req.log.warn && req.log.warn({ issues }, "Validation failed");
+    logger.warn({ issues, raw }, "Validation failed");
     return res.status(400).json({ error: "invalid_payload", details: issues });
   }
 
@@ -169,15 +200,13 @@ app.post("/push", pushLimiter, (req, res) => {
   try {
     playerNum = coercePlayerId(player_id);
   } catch (e) {
-    req.log && req.log.warn && req.log.warn({ player_id }, "Invalid player_id");
+    logger.warn({ player_id, error: e.message }, "Invalid player_id");
     return res
       .status(400)
       .json({ error: "player_id must be 1..40 or 'P1'..'P40'" });
   }
   if (!Number.isInteger(playerNum) || playerNum < 1 || playerNum > 40) {
-    req.log &&
-      req.log.warn &&
-      req.log.warn({ player_id }, "Out of range player_id");
+    logger.warn({ player_id, playerNum }, "Out of range player_id");
     return res
       .status(400)
       .json({ error: "player_id must be 1..40 or 'P1'..'P40'" });
@@ -192,21 +221,13 @@ app.post("/push", pushLimiter, (req, res) => {
   ) {
     providedLevel = undefined;
   }
+  // if level not provided or invalid put it to one (will later be changed when the fallback is correctly coded)
+  const level = providedLevel ?? 1;
 
-  const level =
-    providedLevel ??
-    computeFatigueFallback({
-      hr: Number(hr),
-      hrv: Number(hrv),
-      respiration: Number(respiration),
-      sprint,
-      cod,
-      impact,
-    });
-
-  req.log &&
-    req.log.info &&
-    req.log.info({ pid: playerNum, level }, "Computed level");
+  logger.info(
+    { pid: playerNum, level, providedLevel },
+    "Computed fatigue level"
+  );
 
   const payload = {
     pid: `P${playerNum}`,
@@ -232,19 +253,22 @@ app.post("/push", pushLimiter, (req, res) => {
     ts: Date.now(),
   };
 
-  req.log && req.log.info && req.log.info({ payload }, "Broadcasting payload");
+  logger.info(
+    { payload, clientCount: clients.size },
+    "Broadcasting player update"
+  );
   sendEvent(payload); // broadcasts as "player_update"
   return res.sendStatus(200);
 });
 
 // Global error handler
 app.use((err, req, res, next) => {
-  logger.error({ err }, "Unhandled error");
+  logger.error({ err, url: req.url, method: req.method }, "Unhandled error");
   if (res.headersSent) return next(err);
   res.status(500).json({ error: "internal_server_error" });
 });
 
 const PORT = process.env.PORT || 4000;
 app.listen(PORT, () =>
-  console.log(`SSE server running on http://localhost:${PORT}`)
+  logger.info(`SSE server running on http://localhost:${PORT}`)
 );

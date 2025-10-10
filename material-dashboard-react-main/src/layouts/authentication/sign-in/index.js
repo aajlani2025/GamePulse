@@ -1,20 +1,4 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2023 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
 import { useState } from "react";
-
-// react-router-dom components
 import { Link, useNavigate } from "react-router-dom";
 
 // @mui material components
@@ -29,24 +13,51 @@ import MDButton from "components/MDButton";
 
 // Authentication layout components
 import BasicLayout from "layouts/authentication/components/BasicLayout";
+import { useAuth } from "context/AuthContext";
+import authService from "services/authService";
+import api from "services/api";
+import getErrorMessage from "services/errorMessage";
 
-function Basic() {
+function SignIn() {
   const navigate = useNavigate();
   const [rememberMe, setRememberMe] = useState(false);
-  const [email, setEmail] = useState("");
+  const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const { setAccessToken, setIsAuthenticated, setApproved } = useAuth();
 
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    // Accept any credentials for testing
-    if (rememberMe) {
-      // persist a fake auth flag so refresh keeps the session for quick testing
-      localStorage.setItem("fake_auth", "true");
+    setError("");
+
+    try {
+      const res = await api.post("/auth/login", { username, password });
+      const data = res.data;
+      if (!data?.accessToken) throw new Error("Login failed");
+      // update React context
+      setAccessToken(data.accessToken);
+      setIsAuthenticated(true);
+      // synchronously update the shared authService so axios interceptors and
+      // other synchronous code will have the token immediately available.
+      try {
+        authService.setAccessToken(data.accessToken);
+      } catch (e) {
+      }
+      // clear any previously cached approval state so RequireAuth/Approval
+      // rely on fresh server-provided truth after login
+      try {
+        setApproved(null);
+      } catch (e) {}
+      Promise.resolve().then(() =>
+        navigate("/approval", { state: { from: { pathname: "/ncaa-dashboard" } } })
+      );
+    } catch (err) {
+      console.error("Login error:", err);
+      const msg = getErrorMessage(err, "Incorrect username or password.");
+      setError(msg);
     }
-    // navigate into the app
-    navigate("/ncaa-dashboard");
   };
 
   return (
@@ -71,11 +82,11 @@ function Basic() {
           <MDBox component="form" role="form" onSubmit={handleSubmit}>
             <MDBox mb={2}>
               <MDInput
-                type="email"
-                label="Email"
+                type="text"
+                label="Username"
                 fullWidth
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
               />
             </MDBox>
             <MDBox mb={2}>
@@ -87,37 +98,18 @@ function Basic() {
                 onChange={(e) => setPassword(e.target.value)}
               />
             </MDBox>
-            <MDBox display="flex" alignItems="center" ml={-1}>
-              <Switch checked={rememberMe} onChange={handleSetRememberMe} />
-              <MDTypography
-                variant="button"
-                fontWeight="regular"
-                color="text"
-                onClick={handleSetRememberMe}
-                sx={{ cursor: "pointer", userSelect: "none", ml: -1 }}
-              >
-                &nbsp;&nbsp;Remember me
-              </MDTypography>
-            </MDBox>
+            <MDBox display="flex" alignItems="center" ml={-1}></MDBox>
+            {error && (
+              <MDBox mt={2}>
+                <MDTypography color="error" variant="caption">
+                  {error}
+                </MDTypography>
+              </MDBox>
+            )}
             <MDBox mt={4} mb={1}>
               <MDButton variant="gradient" color="info" fullWidth type="submit">
-                sign in
+                Sign in
               </MDButton>
-            </MDBox>
-            <MDBox mt={3} mb={1} textAlign="center">
-              <MDTypography variant="button" color="text">
-                Don&apos;t have an account?{" "}
-                <MDTypography
-                  component={Link}
-                  to="/authentication/sign-up"
-                  variant="button"
-                  color="info"
-                  fontWeight="medium"
-                  textGradient
-                >
-                  Sign up
-                </MDTypography>
-              </MDTypography>
             </MDBox>
           </MDBox>
         </MDBox>
@@ -126,4 +118,4 @@ function Basic() {
   );
 }
 
-export default Basic;
+export default SignIn;

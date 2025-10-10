@@ -101,11 +101,11 @@ function DashboardNavbar({ absolute, light, isMini }) {
           <MDBox sx={(theme) => navbarRow(theme, { isMini })}>
             <MDBox color={light ? "white" : "inherit"}>
               {/* Profile → /profile */}
-              <Link to="/profile">
+              {/*<Link to="/profile">
                 <IconButton sx={navbarIconButton} size="small" disableRipple>
                   <Icon sx={iconsStyle}>account_circle</Icon>
                 </IconButton>
-              </Link>
+              </Link>*/}
 
               {/* Mini sidenav toggle */}
               <IconButton

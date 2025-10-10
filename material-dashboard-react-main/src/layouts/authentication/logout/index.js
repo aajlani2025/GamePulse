@@ -3,11 +3,11 @@
 * Material Dashboard 2 React - Logout helper
 =========================================================
 
-Simple sign-out page that clears any test auth flags and redirects
-to the sign-in page.
 */
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "context/AuthContext";
+import api from "services/api";
 
 // @mui material components
 import Card from "@mui/material/Card";
@@ -21,20 +21,41 @@ import BasicLayout from "layouts/authentication/components/BasicLayout";
 
 function SignOut() {
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   useEffect(() => {
-    // Clear any fake/test auth tokens used during development
-    try {
-      localStorage.removeItem("fake_auth");
-      localStorage.removeItem("auth_token");
-      sessionStorage.clear();
-    } catch (e) {
-      // ignore storage errors in some browsers
-    }
+    let mounted = true;
 
-    // Redirect back to sign-in after a short delay so user sees feedback
-    const t = setTimeout(() => navigate("/authentication/sign-in", { replace: true }), 600);
-    return () => clearTimeout(t);
+    async function doLogout() {
+      try {
+        await api.post("/auth/logout");
+      } catch (e) {
+        // ignore network errors and clear client state anyway
+        console.error("Logout request failed:", e);
+      }
+
+      // Clear client-side app state and storage (keep only currently used keys)
+      try {
+        localStorage.removeItem("ncaa_groups");
+        localStorage.removeItem("ncaa_levels");
+        sessionStorage.clear();
+      } catch (e) {
+        // ignore storage errors in some browsers
+      }
+
+      try {
+        if (mounted) await logout();
+      } catch (e) {}
+
+      // Redirect back to sign-in immediately (SPA navigation)
+      if (mounted) navigate("/authentication/sign-in", { replace: true });
+    }
+    // start logout flow
+    doLogout();
+
+    return () => {
+      mounted = false;
+    };
   }, [navigate]);
 
   return (

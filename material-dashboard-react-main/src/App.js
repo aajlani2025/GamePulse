@@ -13,7 +13,6 @@ Coded by www.creative-tim.com
 * The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
 */
 
-
 /**
 =========================================================
 * Material Dashboard 2 React - v2.2.0
@@ -25,40 +24,33 @@ import { useState, useEffect, useMemo } from "react";
 // react-router components
 import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 
-// @mui material components
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
 import Icon from "@mui/material/Icon";
 
-// Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 
-// Material Dashboard 2 React example components
 import Sidenav from "examples/Sidenav";
 
-// Material Dashboard 2 React themes
 import theme from "assets/theme";
 import themeRTL from "assets/theme/theme-rtl";
 
-// Material Dashboard 2 React Dark Mode themes
 import themeDark from "assets/theme-dark";
 import themeDarkRTL from "assets/theme-dark/theme-rtl";
 
-// RTL plugins
 import rtlPlugin from "stylis-plugin-rtl";
 import { CacheProvider } from "@emotion/react";
 import createCache from "@emotion/cache";
 
-// Material Dashboard 2 React routes
 import routes from "routes";
+import NotFound from "layouts/404";
+import { useAuth } from "context/AuthContext";
 
-// Material Dashboard 2 React contexts
 import { useMaterialUIController, setMiniSidenav } from "context";
 
-// ★ Alerts context (for logging fatigue notifications)
 import { AlertsProvider } from "context/alerts";
+import { AuthProvider } from "context/AuthContext";
 
-// Images
 import brandWhite from "assets/images/logo-ct.png";
 import brandDark from "assets/images/logo-ct-dark.png";
 
@@ -77,7 +69,6 @@ export default function App() {
   const [rtlCache, setRtlCache] = useState(null);
   const { pathname } = useLocation();
 
-  // Cache for the rtl
   useMemo(() => {
     const cacheRtl = createCache({
       key: "rtl",
@@ -87,7 +78,6 @@ export default function App() {
     setRtlCache(cacheRtl);
   }, []);
 
-  // Open sidenav when mouse enter on mini sidenav
   const handleOnMouseEnter = () => {
     if (miniSidenav && !onMouseEnter) {
       setMiniSidenav(dispatch, false);
@@ -95,7 +85,6 @@ export default function App() {
     }
   };
 
-  // Close sidenav when mouse leave mini sidenav
   const handleOnMouseLeave = () => {
     if (onMouseEnter) {
       setMiniSidenav(dispatch, true);
@@ -103,12 +92,10 @@ export default function App() {
     }
   };
 
-  // Setting the dir attribute for the body element
   useEffect(() => {
     document.body.setAttribute("dir", direction);
   }, [direction]);
 
-  // Setting page scroll to 0 when changing the route
   useEffect(() => {
     document.documentElement.scrollTop = 0;
     document.scrollingElement.scrollTop = 0;
@@ -127,11 +114,55 @@ export default function App() {
       return null;
     });
 
+  // Render the NotFound page for authenticated users, otherwise redirect to sign-in.
+  // This component must be defined here so it runs inside the AuthProvider (when Routes render).
+  function AuthBasedNotFound() {
+    const { isAuthenticated, loading } = useAuth();
+
+    // While auth is resolving, render nothing to avoid redirect flashes.
+    if (loading) return null;
+
+    return isAuthenticated ? <NotFound /> : <Navigate to="/authentication/sign-in" replace />;
+  }
+
   return direction === "rtl" ? (
     <CacheProvider value={rtlCache}>
       <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
         <CssBaseline />
         <AlertsProvider>
+          <AuthProvider>
+            {layout === "dashboard" && (
+              <>
+                <Sidenav
+                  color={sidenavColor}
+                  brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
+                  brandName="GamePulse"
+                  routes={routes}
+                  onMouseEnter={handleOnMouseEnter}
+                  onMouseLeave={handleOnMouseLeave}
+                />
+              </>
+            )}
+            {layout === "vr"}
+            <Routes>
+              {getRoutes(routes)}
+              <Route path="/" element={<Navigate to="/authentication/sign-in" replace />} />
+              <Route
+                path="*"
+                element={
+                  isAuthenticated ? <NotFound /> : <Navigate to="/authentication/sign-in" replace />
+                }
+              />
+            </Routes>
+          </AuthProvider>
+        </AlertsProvider>
+      </ThemeProvider>
+    </CacheProvider>
+  ) : (
+    <ThemeProvider theme={darkMode ? themeDark : theme}>
+      <CssBaseline />
+      <AlertsProvider>
+        <AuthProvider>
           {layout === "dashboard" && (
             <>
               <Sidenav
@@ -148,33 +179,14 @@ export default function App() {
           <Routes>
             {getRoutes(routes)}
             <Route path="/" element={<Navigate to="/authentication/sign-in" replace />} />
-            <Route path="*" element={<Navigate to="/authentication/sign-in" replace />} />
-          </Routes>
-        </AlertsProvider>
-      </ThemeProvider>
-    </CacheProvider>
-  ) : (
-    <ThemeProvider theme={darkMode ? themeDark : theme}>
-      <CssBaseline />
-      <AlertsProvider>
-        {layout === "dashboard" && (
-          <>
-            <Sidenav
-              color={sidenavColor}
-              brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
-              brandName="GamePulse"
-              routes={routes}
-              onMouseEnter={handleOnMouseEnter}
-              onMouseLeave={handleOnMouseLeave}
+            <Route
+              path="*"
+              element={
+                isAuthenticated ? <NotFound /> : <Navigate to="/authentication/sign-in" replace />
+              }
             />
-          </>
-        )}
-        {layout === "vr"}
-        <Routes>
-          {getRoutes(routes)}
-          <Route path="/" element={<Navigate to="/authentication/sign-in" replace />} />
-          <Route path="*" element={<Navigate to="/authentication/sign-in" replace />} />
-        </Routes>
+          </Routes>
+        </AuthProvider>
       </AlertsProvider>
     </ThemeProvider>
   );

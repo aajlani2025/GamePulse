@@ -83,9 +83,10 @@ function Footer({ company, links }) {
 Footer.defaultProps = {
   company: { href: "#", name: "GamePulse" },
   links: [
-    { href: "#", name: "About Us" },
-    { href: "#", name: "Blog" },
-    { href: "#", name: "License" },
+    //these will later be added
+    //{ href: "#", name: "About Us" },
+    //{ href: "#", name: "Blog" },
+    //{ href: "#", name: "License" },
   ],
 };
 

@@ -1,7 +1,5 @@
 # The name of the project.
-name: material-dashboard-react
-# The region where the project is deployed.
-region: us-east-1
+name: GamePulse
 # The version of the Genezio YAML configuration to parse.
 yamlVersion: 2
 # Information about the frontend, including the path, language, and publish directory.
