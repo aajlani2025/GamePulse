@@ -1,4 +1,3 @@
-
 let _accessToken = null;
 let _refreshHandler = null;
 let _logoutHandler = null;
@@ -35,8 +34,7 @@ function clearLocalData() {
     localStorage.removeItem("gp_alerts");
     localStorage.removeItem("ncaa_groups");
     localStorage.removeItem("ncaa_levels");
-  } catch (e) {
-  }
+  } catch (e) {}
 }
 
 module.exports = {

@@ -125,6 +125,17 @@ export default function App() {
     return isAuthenticated ? <NotFound /> : <Navigate to="/authentication/sign-in" replace />;
   }
 
+  // Redirect root "/" to the dashboard for authenticated users, otherwise to sign-in.
+  function HomeRedirect() {
+    const { isAuthenticated, loading } = useAuth();
+    if (loading) return null;
+    return isAuthenticated ? (
+      <Navigate to="/ncaa-dashboard" replace />
+    ) : (
+      <Navigate to="/authentication/sign-in" replace />
+    );
+  }
+
   return direction === "rtl" ? (
     <CacheProvider value={rtlCache}>
       <ThemeProvider theme={darkMode ? themeDarkRTL : themeRTL}>
@@ -146,13 +157,8 @@ export default function App() {
             {layout === "vr"}
             <Routes>
               {getRoutes(routes)}
-              <Route path="/" element={<Navigate to="/authentication/sign-in" replace />} />
-              <Route
-                path="*"
-                element={
-                  isAuthenticated ? <NotFound /> : <Navigate to="/authentication/sign-in" replace />
-                }
-              />
+              <Route path="/" element={<HomeRedirect />} />
+              <Route path="*" element={<AuthBasedNotFound />} />
             </Routes>
           </AuthProvider>
         </AlertsProvider>
@@ -178,13 +184,8 @@ export default function App() {
           {layout === "vr"}
           <Routes>
             {getRoutes(routes)}
-            <Route path="/" element={<Navigate to="/authentication/sign-in" replace />} />
-            <Route
-              path="*"
-              element={
-                isAuthenticated ? <NotFound /> : <Navigate to="/authentication/sign-in" replace />
-              }
-            />
+            <Route path="/" element={<HomeRedirect />} />
+            <Route path="*" element={<AuthBasedNotFound />} />
           </Routes>
         </AuthProvider>
       </AlertsProvider>

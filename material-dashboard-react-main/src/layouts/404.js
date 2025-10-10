@@ -1,5 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "context/AuthContext";
 
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -7,6 +8,7 @@ import MDButton from "components/MDButton";
 
 export default function NotFound() {
   const navigate = useNavigate();
+  const { isAuthenticated } = useAuth();
 
   return (
     <MDBox
@@ -27,10 +29,18 @@ export default function NotFound() {
       </MDTypography>
 
       <MDTypography variant="body2" color="text" mt={1} mb={3}>
-        Sorry, we couldn't find the page you're looking for.
+        Sorry. The page could not be found.
       </MDTypography>
 
-      <MDButton variant="gradient" color="info" onClick={() => navigate("/", { replace: true })}>
+      <MDButton
+        variant="gradient"
+        color="info"
+        onClick={() =>
+          navigate(isAuthenticated ? "/ncaa-dashboard" : "/authentication/sign-in", {
+            replace: true,
+          })
+        }
+      >
         Go Home
       </MDButton>
     </MDBox>
