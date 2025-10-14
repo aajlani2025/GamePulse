@@ -1,4 +1,5 @@
 const cors = require("cors");
+const logger = require("../config/logger");
 
 const allowedOrigins = process.env.CORS_ORIGINS
   ? process.env.CORS_ORIGINS.split(",").map((s) => s.trim())
@@ -16,17 +17,14 @@ module.exports = cors({
 
     // Diagnostic log
     try {
-      console.info(
-        `[cors] request origin=${origin} allowedOrigins=${JSON.stringify(
-          allowedOrigins
-        )}`
-      );
+      logger.info({ origin, allowedOrigins }, "[cors] request origin");
     } catch (e) {
+      // ignore logging failures
     }
 
     if (allowedOrigins.includes(origin)) return callback(null, true);
 
-    console.warn(`[cors] rejecting origin: ${origin}`);
+    logger.warn({ origin }, "[cors] rejecting origin");
     callback(new Error("CORS not allowed"));
   },
   optionsSuccessStatus: 200,

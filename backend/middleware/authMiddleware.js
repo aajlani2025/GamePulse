@@ -1,5 +1,6 @@
 const jwt = require("jsonwebtoken");
 const pool = require("../config/db");
+const logger = require("../config/logger");
 
 async function verifyAccessToken(req, res, next) {
   const authHeader = req.headers["authorization"];
@@ -27,7 +28,7 @@ async function verifyAccessToken(req, res, next) {
       req.user = { id: user.id, username: user.username };
       return next();
     } catch (dbErr) {
-      console.error("DB error in auth middleware:", dbErr);
+      logger.error({ err: dbErr }, "DB error in auth middleware");
       return res.sendStatus(500);
     }
   } catch (err) {

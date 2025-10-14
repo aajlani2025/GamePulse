@@ -1,4 +1,5 @@
 const approvalService = require("../services/approvalService");
+const logger = require("../config/logger");
 
 // Returns minimal info about current authenticated user, including approved boolean
 async function getMe(req, res) {
@@ -10,7 +11,7 @@ async function getMe(req, res) {
     const approved = await approvalService.hasUserApproved(user.id);
     return res.json({ id: user.id, username: user.username, approved });
   } catch (err) {
-    console.error("meController error:", err);
+    logger.error({ err }, "meController error");
     return res.status(500).json({ error: "internal_server_error" });
   }
 }

@@ -8,7 +8,7 @@ const meController = require("../controllers/meController");
 const verifyAccessToken = require("../middleware/authMiddleware");
 
 router.post("/login", authController.handleLogin);
-router.post("/approval", approvalController.postApproval);
+router.post("/approval",verifyAccessToken, approvalController.postApproval);
 router.post("/refresh", refreshController.handleRefresh);
 router.post("/logout", logoutController.logout);
 router.get("/me", verifyAccessToken, meController.getMe);

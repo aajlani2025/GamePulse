@@ -63,13 +63,6 @@ app.use("/events", sseRoutes);
 // Push API (rate-limited)
 app.use("/push", rateLimit, pushRoutes);
 
-// Example protected test route
-app.get("/protected", authMiddleware, (req, res) => {
-  res.json({
-    message: `Hello ${req.user.username}, this is protected data.`,
-  });
-});
-
 // ---------- Error Handling ----------
 app.use(errorHandler);
 

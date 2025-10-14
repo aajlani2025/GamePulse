@@ -11,8 +11,6 @@ async function createApprovalForUser(userId, consent = true) {
       consent
     );
 
-    // Optionally update the users table to record last_approval_at
-
     await client.query("COMMIT");
     return inserted;
   } catch (err) {
@@ -22,8 +20,6 @@ async function createApprovalForUser(userId, consent = true) {
     client.release();
   }
 }
-
-module.exports = { createApprovalForUser };
 
 async function hasUserApproved(userId) {
   const row = await approvalsRepo.getLatestApprovalByUser(userId);

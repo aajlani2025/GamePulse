@@ -1,39 +1,14 @@
-const jwt = require("jsonwebtoken");
 const approvalService = require("../services/approvalService");
+const logger = require("../config/logger");
 
-// resolve user id from Authorization header (Bearer) or refresh cookie
-function resolveUserId(req) {
-  const authHeader = req.headers?.authorization || "";
-  if (authHeader.startsWith("Bearer ")) {
-    const token = authHeader.slice(7).trim();
-    try {
-      const payload = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-      if (payload && (payload.sub || payload.id))
-        return payload.sub || payload.id;
-    } catch (e) {
-      // ignore and fallback to refresh cookie
-    }
-  }
-
-  const refresh = req.cookies?.refreshToken;
-  if (refresh) {
-    try {
-      const payload = jwt.verify(refresh, process.env.REFRESH_TOKEN_SECRET);
-      if (payload && (payload.sub || payload.id))
-        return payload.sub || payload.id;
-    } catch (e) {
-      // invalid refresh
-    }
-  }
-
-  return null;
-}
+// POST /auth/approval
 
 const postApproval = async (req, res) => {
   try {
-    const userId = resolveUserId(req);
-    if (!userId) return res.sendStatus(401);
+    const user = req.user;
+    if (!user) return res.sendStatus(401);
 
+    const userId = user.id;
     const consentRaw = req.body?.consent;
     const consent = typeof consentRaw === "boolean" ? consentRaw : true;
 
@@ -42,14 +17,11 @@ const postApproval = async (req, res) => {
       consent
     );
     const insertedId = inserted?.id ?? null;
-    // inserted should include consent_given based on repository RETURNING
     const approved = Boolean(inserted?.consent_given);
-    console.info(
-      `[approval] stored consent for user_id=${userId} id=${insertedId} approved=${approved}`
-    );
+    logger.info({ userId, insertedId, approved }, "[approval] stored consent");
     return res.status(201).json({ ok: true, id: insertedId, approved });
   } catch (err) {
-    console.error("Approval controller error:", err);
+    logger.error({ err }, "Approval controller error");
     return res.status(500).json({ error: "internal_server_error" });
   }
 };

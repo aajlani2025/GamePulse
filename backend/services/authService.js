@@ -9,27 +9,19 @@ const SALT_ROUNDS = Number(process.env.SALT_ROUNDS) || 10;
 
 // function to authenticate user by username and password
 async function authenticateByUsernameAndPassword(username, password) {
-  const norm = String(username || "")
-    .trim();
-  const candidates = await usersRepo.findByNormalizedUsername(norm);
-  if (!candidates || candidates.length === 0) return null;
+  const norm = String(username || "").trim();
+  const found = await usersRepo.findByUsername(norm);
+  if (!found) return null;
 
-  let matched = null;
-  for (const c of candidates) {
-    const hash = c.password_hash;
-    if (!hash || typeof hash !== "string") continue;
-    try {
-      const ok = await bcrypt.compare(String(password), String(hash));
-      if (ok) {
-        if (matched) throw new Error("Ambiguous credentials");
-        matched = c;
-      }
-    } catch (e) {
-      continue;
-    }
+  const hash = found.password_hash;
+  if (!hash || typeof hash !== "string") return null;
+
+  try {
+    const ok = await bcrypt.compare(String(password), String(hash));
+    return ok ? found : null;
+  } catch (e) {
+    return null;
   }
-
-  return matched;
 }
 
 // store the hash of the refresh token for the user id
@@ -73,26 +65,24 @@ async function rotateRefreshToken(presentedToken, username) {
   const presented = String(presentedToken);
   const stored = String(storedHash);
 
-let matches = false;
-try {
-  // Only allow bcrypt hashed tokens
-  if (!stored.startsWith("$2")) {
-    // Immediately revoke non-bcrypt tokens
-    await usersRepo.updateRefreshHashByUsername(username, "");
-    throw new Error("insecure_token_format");
-  }
+  let matches = false;
+  try {
+    // Only allow bcrypt hashed tokens
+    if (!stored.startsWith("$2")) {
+      // Immediately revoke non-bcrypt tokens
+      await usersRepo.updateRefreshHashByUsername(username, "");
+      throw new Error("insecure_token_format");
+    }
 
-  matches = await bcrypt.compare(presented, stored);
-} catch (e) {
-  matches = false;
-}
+    matches = await bcrypt.compare(presented, stored);
+  } catch (e) {
+    matches = false;
+  }
   if (!matches) {
     // revoke stored token
     try {
       await usersRepo.updateRefreshHashByUsername(username, "");
-    } catch (e) {
-
-    }
+    } catch (e) {}
     throw new Error("invalid_refresh");
   }
 

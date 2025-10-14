@@ -1,4 +1,5 @@
 const authService = require("../services/authService");
+const logger = require("../config/logger");
 
 // handleLogin: validate input, call service to perform login flow, and set cookie.
 const handleLogin = async (req, res) => {
@@ -39,7 +40,7 @@ const handleLogin = async (req, res) => {
 
     return res.json({ accessToken });
   } catch (err) {
-    console.error("Login error:", err);
+    logger.error({ err }, "Login error");
     if (err && err.message === "Ambiguous credentials") {
       return res.status(409).json({ error: "Ambiguous credentials" });
     }

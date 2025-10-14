@@ -1,4 +1,5 @@
 const authService = require("../services/authService");
+const logger = require("../config/logger");
 
 // handleRefresh: verify refresh cookie, rotate it (via service), and return new access token
 const handleRefresh = async (req, res) => {
@@ -31,7 +32,7 @@ const handleRefresh = async (req, res) => {
 
     return res.json({ accessToken });
   } catch (err) {
-    console.error("Refresh error", err);
+    logger.warn({ err }, "Refresh error");
     return res.sendStatus(403);
   }
 };
