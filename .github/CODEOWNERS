@@ -1,0 +1,14 @@
+# CODEOWNERS
+# Ici on indique qui doit approuver les PR selon les zones du repo
+
+# Backend
+/backend/ @aajlani2025
+
+# Frontend
+/material-dashboard-react-main/ @aajlani2025
+
+# Workflows & infra
+/.github/workflows/ @aajlani2025
+
+# Fallback (si rien ne correspond)
+* @aajlani2025
