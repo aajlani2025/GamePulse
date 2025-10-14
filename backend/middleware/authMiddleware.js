@@ -12,7 +12,6 @@ async function verifyAccessToken(req, res, next) {
     // Verify token synchronously (throws on invalid/expired)
     const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
     const id = decoded?.sub;
-    const username = decoded?.username;
     if (!id) return res.status(403).json({ error: "invalid_token" });
 
     // Confirm the user exists in the DB (no JSON file dependency)

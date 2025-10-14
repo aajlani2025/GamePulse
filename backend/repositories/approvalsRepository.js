@@ -14,7 +14,6 @@ async function insertApproval(clientOrPool, userId, consent = true) {
   return rows[0];
 }
 
-module.exports = { insertApproval };
 
 // Get the latest approval row for a given user (most recent consent_time)
 async function getLatestApprovalByUser(userId) {

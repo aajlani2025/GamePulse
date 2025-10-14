@@ -58,7 +58,7 @@ async function rotateRefreshToken(presentedToken, username) {
   const found = await usersRepo.findByUsername(username);
   if (!found) throw new Error("not_found");
 
-  const storedHash = found.refrash_token_hash || "";
+  const storedHash = found.refresh_token_hash || "";
   if (!storedHash) throw new Error("no_stored_token");
 
   // normalize inputs to strings
