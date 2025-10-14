@@ -18,7 +18,7 @@ const authMiddleware = require("./middleware/authMiddleware");
 const sseRoutes = require("./routes/sseRoutes");
 const pushRoutes = require("./routes/pushRoutes");
 const authRoutes = require("./routes/authRoutes");
-
+const webhookRoutes = require("./routes/WebhookAlerteRoute");
 
 
 const app = express();
@@ -62,7 +62,7 @@ app.use("/events", sseRoutes);
 
 // Push API (rate-limited)
 app.use("/push", rateLimit, pushRoutes);
-
+app.use("/webhook", webhookRoutes);
 // ---------- Error Handling ----------
 app.use(errorHandler);
 
