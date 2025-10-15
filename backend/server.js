@@ -16,10 +16,9 @@ const authMiddleware = require("./middleware/authMiddleware");
 
 // Routes
 const sseRoutes = require("./routes/sseRoutes");
-const pushRoutes = require("./routes/pushRoutes");
 const authRoutes = require("./routes/authRoutes");
 const webhookRoutes = require("./routes/WebhookAlerteRoute");
-
+const pushPositionRoutes = require("./routes/pushPositionRoutes");
 
 const app = express();
 
@@ -47,8 +46,6 @@ app.use(helmet());
 app.use(express.json({ limit: "8kb" }));
 app.use(jsonLimiter);
 
-
-
 // CORS
 app.use(cors);
 
@@ -60,8 +57,10 @@ app.use("/auth", authRoutes);
 // SSE events (server-sent events stream)
 app.use("/events", sseRoutes);
 
-// Push API (rate-limited)
-app.use("/push", rateLimit, pushRoutes);
+// Push API (rate-limited) — uses same router but different mount path
+app.use("/push", rateLimit, sseRoutes);
+// Position-only pushes (rate-limited)
+app.use("/push_position", rateLimit, pushPositionRoutes);
 app.use("/webhook", webhookRoutes);
 // ---------- Error Handling ----------
 app.use(errorHandler);

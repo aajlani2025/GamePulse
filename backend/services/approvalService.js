@@ -25,5 +25,22 @@ async function hasUserApproved(userId) {
   const row = await approvalsRepo.getLatestApprovalByUser(userId);
   return Boolean(row && row.consent_given);
 }
+async function revokeUserApproval (userId) {  
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN");
+    const updated = await approvalsRepo.setApprovalFalse(
+      client,
+      userId
+    );
+    await client.query("COMMIT");
+    return updated;
+  } catch (err) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw err;
+  } finally {
+    client.release();
+  }
+}
 
-module.exports = { createApprovalForUser, hasUserApproved };
+module.exports = { createApprovalForUser, hasUserApproved , revokeUserApproval };

@@ -18,15 +18,18 @@ const handleLogin = async (req, res) => {
       ? String(passwordRaw)
       : "";
 
-  if (!username || !password)
+  if (!username || !password){
+    logger.warn( "username or password missing");
     return res
       .status(400)
       .json({ message: "Username and password are required." });
-
+  };
+    
   try {
     const tokens = await authService.loginFlow(username, password);
-    if (!tokens)
-      return res.status(401).json({ error: "Invalid username or password" });
+    if (!tokens) {
+      logger.warn("no tokens");
+      return res.status(401).json({ error: "Invalid username or password" });};
 
     const { accessToken, refreshToken } = tokens;
 

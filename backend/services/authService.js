@@ -1,4 +1,5 @@
 const bcrypt = require("bcrypt");
+const jwt = require("jsonwebtoken");
 const usersRepo = require("../repositories/usersRepository");
 const {
   generateAccessToken,
@@ -29,10 +30,14 @@ async function storeRefreshHashForUser(id, refreshToken) {
   const h = await bcrypt.hash(refreshToken, SALT_ROUNDS);
   await usersRepo.updateRefreshHashById(id, h);
 }
-// clear the stored refresh token hash for the given username
+// clear the stored refresh token hash for the given username (fallback)
 async function clearRefreshForUsername(username) {
-  // set to empty string (schema expects NOT NULL in some dev setups)
   return usersRepo.updateRefreshHashByUsername(username, "");
+}
+
+// clear the stored refresh token hash for the given user id (preferred)
+async function clearRefreshForUserId(id) {
+  return usersRepo.updateRefreshHashById(id, "");
 }
 // Perform login flow: authenticate, generate tokens, store refresh hash, return tokens
 async function loginFlow(username, password) {
@@ -52,10 +57,28 @@ async function loginFlow(username, password) {
  * { accessToken, refreshToken }.
  * If invalid/expired, throw an error.
  */
-async function rotateRefreshToken(presentedToken, username) {
-  if (!presentedToken || !username) throw new Error("invalid_request");
+async function rotateRefreshToken(presentedToken) {
+  if (!presentedToken) throw new Error("invalid_request");
 
-  const found = await usersRepo.findByUsername(username);
+  // First decode/verify the refresh token to extract subject (id)
+  let payload;
+  try {
+    payload = jwt.verify(presentedToken, process.env.REFRESH_TOKEN_SECRET);
+  } catch (err) {
+    throw new Error("invalid_refresh");
+  }
+
+  const userId = payload?.sub ?? null;
+  const username = payload?.username ?? null; // fallback
+
+  let found = null;
+  if (userId != null) {
+    found = await usersRepo.findById(userId);
+  }
+  // migration fallback to username if token lacks sub
+  if (!found && username) {
+    found = await usersRepo.findByUsername(username);
+  }
   if (!found) throw new Error("not_found");
 
   const storedHash = found.refresh_token_hash || "";
@@ -69,8 +92,8 @@ async function rotateRefreshToken(presentedToken, username) {
   try {
     // Only allow bcrypt hashed tokens
     if (!stored.startsWith("$2")) {
-      // Immediately revoke non-bcrypt tokens
-      await usersRepo.updateRefreshHashByUsername(username, "");
+      // Immediately revoke non-bcrypt tokens by id
+      await usersRepo.updateRefreshHashById(found.id, "");
       throw new Error("insecure_token_format");
     }
 
@@ -79,20 +102,20 @@ async function rotateRefreshToken(presentedToken, username) {
     matches = false;
   }
   if (!matches) {
-    // revoke stored token
+    // revoke stored token (id-based)
     try {
-      await usersRepo.updateRefreshHashByUsername(username, "");
+      await usersRepo.updateRefreshHashById(found.id, "");
     } catch (e) {}
     throw new Error("invalid_refresh");
   }
 
-  // matched — rotate
+  // matched — rotate (prefer id when storing)
   const newRefreshToken = generateRefreshToken({
     id: found.id,
     username: found.username,
   });
   const newRefreshHash = await bcrypt.hash(newRefreshToken, SALT_ROUNDS);
-  await usersRepo.updateRefreshHashByUsername(username, newRefreshHash);
+  await usersRepo.updateRefreshHashById(found.id, newRefreshHash);
 
   const accessToken = generateAccessToken({
     username: found.username,
@@ -106,5 +129,6 @@ module.exports = {
   authenticateByUsernameAndPassword,
   storeRefreshHashForUser,
   clearRefreshForUsername,
+  clearRefreshForUserId,
   rotateRefreshToken,
 };

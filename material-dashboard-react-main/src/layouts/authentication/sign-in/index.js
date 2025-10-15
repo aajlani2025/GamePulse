@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 
 // @mui material components
 import Card from "@mui/material/Card";
-import Switch from "@mui/material/Switch";
+
 
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
@@ -26,7 +26,6 @@ function SignIn() {
   const [error, setError] = useState("");
   const { setAccessToken, setIsAuthenticated, setApproved } = useAuth();
 
-  const handleSetRememberMe = () => setRememberMe(!rememberMe);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -49,9 +48,28 @@ function SignIn() {
       try {
         setApproved(null);
       } catch (e) {}
-      Promise.resolve().then(() =>
-        navigate("/approval", { state: { from: { pathname: "/ncaa-dashboard" } } })
-      );
+
+      // Immediately fetch authoritative /auth/me so we know whether to send
+      // the user to the approval page or straight into the app.
+      try {
+        const me = await api.get("/auth/me");
+        const isApproved = Boolean(me?.data?.approved);
+        try {
+          setApproved(isApproved);
+        } catch (e) {}
+        if (!isApproved) {
+          navigate("/approval", { state: { from: { pathname: "/ncaa-dashboard" } } });
+        } else {
+          navigate("/ncaa-dashboard", { replace: true });
+        }
+      } catch (e) {
+        // If /auth/me fails, fall back to navigating to approval so user cannot
+        // access protected areas until we have authoritative state.
+        try {
+          setApproved(null);
+        } catch (ee) {}
+        navigate("/approval", { state: { from: { pathname: "/ncaa-dashboard" } } });
+      }
     } catch (err) {
       console.error("Login error:", err);
       const msg = getErrorMessage(err, "Incorrect username or password.");

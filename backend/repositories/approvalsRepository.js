@@ -21,5 +21,15 @@ async function getLatestApprovalByUser(userId) {
   const { rows } = await pool.query(sql, [userId]);
   return rows[0] || null;
 }
-
-module.exports = { insertApproval, getLatestApprovalByUser };
+async function setApprovalFalse(clientOrPool, userId) {
+  const sql = `UPDATE approvals SET consent_given = false WHERE user_id = $1 RETURNING id, user_id, consent_given, consent_time`;
+  const params = [userId];
+  const isClient = clientOrPool && typeof clientOrPool.release === "function";
+  if (isClient) {
+    const { rows } = await clientOrPool.query(sql, params);
+    return rows[0];
+  }
+  const { rows } = await pool.query(sql, params);
+  return rows[0];
+}
+module.exports = { insertApproval, getLatestApprovalByUser, setApprovalFalse };

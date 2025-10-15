@@ -7,18 +7,10 @@ const handleRefresh = async (req, res) => {
   if (!token) return res.sendStatus(401);
 
   try {
-    // decode to extract username (will throw if signature invalid)
-    const payload = require("jsonwebtoken").verify(
-      token,
-      process.env.REFRESH_TOKEN_SECRET
-    );
-    const username = payload?.username;
-    if (!username) return res.sendStatus(403);
-
-    // delegate validation + rotation to authService
+    // Delegate validation + rotation to authService which will verify the token
+    // and use the embedded subject (user id) as the authoritative lookup key.
     const { accessToken, refreshToken } = await authService.rotateRefreshToken(
-      token,
-      username
+      token
     );
 
     // set new refresh cookie

@@ -17,8 +17,15 @@ async function findByUsername(username) {
   return rows[0] || null;
 }
 
+async function findById(id) {
+  const sql = `SELECT id, username, password_hash, refresh_token_hash FROM users WHERE id = $1 LIMIT 1`;
+  const { rows } = await pool.query(sql, [id]);
+  return rows[0] || null;
+}
+
 module.exports = {
   updateRefreshHashById,
   updateRefreshHashByUsername,
   findByUsername,
+  findById,
 };

@@ -1,9 +1,3 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.2.0
-=========================================================
-*/
-
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import PropTypes from "prop-types";
 import DashboardLayout from "examples/LayoutContainers/DashboardLayout";
@@ -114,7 +108,7 @@ export default function NcaaDashboard() {
   useEffect(() => {
     posIndexRef.current = buildIndex(groups);
     inFieldRef.current = Object.fromEntries(ALL_IDS.map((id) => [id, groups.active.includes(id)]));
-  }, [groups]);
+  }, [groups]);// index and in-field status
 
   useEffect(() => {
     try {
@@ -165,7 +159,8 @@ export default function NcaaDashboard() {
       eventsUrl = `${base}/events`;
     }
     const es = new EventSource(eventsUrl);
-
+    
+//function to handle incoming data
     function handle(data) {
       const { pid, level, metrics } = data || {};
       if (!pid) return;
@@ -188,8 +183,13 @@ export default function NcaaDashboard() {
         }
       }
 
-      const x = Number(metrics?.pos_x_yd ?? metrics?.pos_x);
-      const y = Number(metrics?.pos_y_yd ?? metrics?.pos_y);
+      // Treat explicit null/undefined from the server as missing values so they
+      // don't coerce to 0 when passed through Number(). Convert missing/null
+      // into NaN which will be rejected by Number.isFinite below.
+      const rawX = metrics?.pos_x_yd ?? metrics?.pos_x;
+      const rawY = metrics?.pos_y_yd ?? metrics?.pos_y;
+      const x = rawX == null ? NaN : Number(rawX);
+      const y = rawY == null ? NaN : Number(rawY);
       if (DEBUG) {
         // snapshot of relevant state for debugging
         console.debug("SSE event", { pid, lvl, x, y, metrics });

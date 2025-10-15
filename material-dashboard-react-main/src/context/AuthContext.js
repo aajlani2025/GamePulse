@@ -83,6 +83,10 @@ export function AuthProvider({ children }) {
       } catch (e) {}
       setAccessToken(null);
       setIsAuthenticated(false);
+      // Ensure approval state is cleared on any logout path (including non-UI triggers)
+      try {
+        setApproved(null);
+      } catch (e) {}
       try {
         authService.clearLocalData();
       } catch (e) {}

@@ -26,7 +26,6 @@ import { Routes, Route, Navigate, useLocation } from "react-router-dom";
 
 import { ThemeProvider } from "@mui/material/styles";
 import CssBaseline from "@mui/material/CssBaseline";
-import Icon from "@mui/material/Icon";
 
 import MDBox from "components/MDBox";
 
@@ -51,8 +50,6 @@ import { useMaterialUIController, setMiniSidenav } from "context";
 import { AlertsProvider } from "context/alerts";
 import { AuthProvider } from "context/AuthContext";
 
-import brandWhite from "assets/images/logo-ct.png";
-import brandDark from "assets/images/logo-ct-dark.png";
 
 export default function App() {
   const [controller, dispatch] = useMaterialUIController();
@@ -146,7 +143,6 @@ export default function App() {
               <>
                 <Sidenav
                   color={sidenavColor}
-                  brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
                   brandName="GamePulse"
                   routes={routes}
                   onMouseEnter={handleOnMouseEnter}
@@ -173,7 +169,6 @@ export default function App() {
             <>
               <Sidenav
                 color={sidenavColor}
-                brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
                 brandName="GamePulse"
                 routes={routes}
                 onMouseEnter={handleOnMouseEnter}

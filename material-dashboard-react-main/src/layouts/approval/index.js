@@ -9,6 +9,7 @@ import MDButton from "components/MDButton";
 import { useAuth } from "context/AuthContext";
 import api from "services/api";
 
+
 export default function Approval() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -39,8 +40,13 @@ export default function Approval() {
   }
 
   return (
-    <MDBox display="flex" alignItems="center" justifyContent="center" height="80vh">
-      <Card sx={{ maxWidth: 600, padding: 4 }}>
+    <MDBox
+      sx={{ position: "fixed", inset: 0, zIndex: 1400, backgroundColor: "background.default" }}
+      display="flex"
+      alignItems="center"
+      justifyContent="center"
+    >
+      <Card sx={{ maxWidth: 600, padding: 4, margin: 2 }}>
         <MDTypography variant="h5" fontWeight="bold" gutterBottom>
           Data Collection Approval
         </MDTypography>
