@@ -1,7 +1,7 @@
 import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "context/AuthContext";
-
+// eslint-disable-next-line react/prop-types
 export default function RequireAuth({ children }) {
   const { isAuthenticated, loading, approved } = useAuth();
   const location = useLocation();

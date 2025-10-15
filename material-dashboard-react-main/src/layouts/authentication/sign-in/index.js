@@ -43,8 +43,7 @@ function SignIn() {
       // other synchronous code will have the token immediately available.
       try {
         authService.setAccessToken(data.accessToken);
-      } catch (e) {
-      }
+      } catch (e) {}
       // clear any previously cached approval state so RequireAuth/Approval
       // rely on fresh server-provided truth after login
       try {

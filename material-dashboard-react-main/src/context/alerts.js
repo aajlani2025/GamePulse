@@ -1,5 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import PropTypes from "prop-types"; 
+import PropTypes from "prop-types";
 
 function secureId(len = 12) {
   if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {

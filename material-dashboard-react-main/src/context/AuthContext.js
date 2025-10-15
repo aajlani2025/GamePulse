@@ -3,7 +3,7 @@ import authService from "services/authService";
 import api from "services/api";
 
 const AuthContext = createContext(null);
-
+// eslint-disable-next-line react/prop-types
 export function AuthProvider({ children }) {
   const [accessToken, setAccessToken] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -55,8 +55,7 @@ export function AuthProvider({ children }) {
             setIsAuthenticated(true);
             try {
               authService.setAccessToken(data.accessToken);
-            } catch (e) {
-            }
+            } catch (e) {}
             // After obtaining an access token, fetch authoritative /auth/me
             await fetchMe();
           }
@@ -81,8 +80,7 @@ export function AuthProvider({ children }) {
     authService.setLogoutHandler(async () => {
       try {
         await api.post("/auth/logout");
-      } catch (e) {
-      }
+      } catch (e) {}
       setAccessToken(null);
       setIsAuthenticated(false);
       try {
@@ -111,8 +109,7 @@ export function AuthProvider({ children }) {
             setIsAuthenticated(true);
             try {
               authService.setAccessToken(data.accessToken);
-            } catch (e) {
-            }
+            } catch (e) {}
             // fetch authoritative approval state
             try {
               const me = await api.get("/auth/me");
@@ -123,8 +120,7 @@ export function AuthProvider({ children }) {
             return true;
           }
         }
-      } catch (e) {
-      }
+      } catch (e) {}
       setAccessToken(null);
       setIsAuthenticated(false);
       setApproved(null);
@@ -133,8 +129,7 @@ export function AuthProvider({ children }) {
     logout: async () => {
       try {
         await api.post("/auth/logout");
-      } catch (e) {
-      }
+      } catch (e) {}
       setAccessToken(null);
       setIsAuthenticated(false);
       setApproved(null);

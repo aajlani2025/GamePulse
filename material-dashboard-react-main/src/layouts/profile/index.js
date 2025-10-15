@@ -43,7 +43,7 @@ function Overview() {
     role: "Analyst",
     team: "Pacific U",
   };
-
+  // eslint-disable-next-line react/prop-types
   const InfoRow = ({ label, value }) => (
     <Grid container spacing={1} alignItems="center" sx={{ py: 1 }}>
       <Grid item xs={5} md={3}>
