@@ -1,6 +1,7 @@
 const { PositionSchema } = require("../utils/validators");
 const { coercePlayerId } = require("../utils/helpers");
 const { sendEvent } = require("../sse/sseManager");
+const { normalizePositionMetrics } = require("../utils/positionUtils");
 const logger = require("../config/logger");
 
 async function postPosition(req, res) {
@@ -30,11 +31,7 @@ async function postPosition(req, res) {
   const payload = {
     pid: `P${playerNum}`,
     // For position-only pushes we leave `level` undefined and include metrics
-    metrics: {
-      timestamp: timestamp ?? null,
-      pos_x: Number.isFinite(pos_x) ? pos_x : null,
-      pos_y: Number.isFinite(pos_y) ? pos_y : null,
-    },
+    metrics: normalizePositionMetrics({ timestamp, pos_x, pos_y }),
     ts: Date.now(),
   };
 
