@@ -4,7 +4,7 @@ import joblib
 import numpy as np
 from datetime import datetime
 import logging
-from typing import List, Optional
+from typing import List, Optional,Dict
 from dotenv import load_dotenv
 import os
 
@@ -15,7 +15,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(
-    title="Player Performance Prediction API",
+    title="Physiological Prediction API",
     description="API pour prédire HR et HRV basé sur les données GPS",
     version="1.0.0"
 )
@@ -32,14 +32,14 @@ def load_models_and_scaler():
     
     try:
         logger.info("⏳ Chargement des modèles et du scaler au démarrage...")
-        
+        BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Répertoire actuel
+        MODEL_PATH = os.path.join(BASE_DIR, "models")
         # Charger les modèles XGBoost
-        MODELS["HR"] = joblib.load("./app/models/HR_xgb.joblib")
-        MODELS["HRV"] = joblib.load("./app/models/HRV_xgb.joblib")
+        MODELS["HR"] = joblib.load(os.path.join(MODEL_PATH, "HR_xgb.joblib"))
+        MODELS["HRV"] = joblib.load(os.path.join(MODEL_PATH, "HRV_xgb.joblib"))
 
         # Charger le scaler 
-        SCALER = joblib.load("./app/models/scaler.joblib")
-
+        SCALER = joblib.load(os.path.join(MODEL_PATH, "scaler.joblib"))
         MODELS_LOADED = True
         
         logger.info(f" Modèles chargés avec succès: {list(MODELS.keys())}")
@@ -68,6 +68,7 @@ async def predict(target: str, features: List[float], x_api_key: Optional[str] =
       ["Vitesse", "Acceleration", "Distance_HI_inc", "Sprint_inc", 
        "COD_inc", "Impact_inc", "elapsed_time_sec"]
     """
+
     if x_api_key != API_KEY:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
@@ -115,8 +116,12 @@ async def predict(target: str, features: List[float], x_api_key: Optional[str] =
         raise HTTPException(status_code=500, detail=f"Erreur de prédiction: {str(e)}")
 
 @app.post("/predict_both")
-async def predict_both(features: List[float], x_api_key: Optional[str] = Header(None)):
-    """Prédit à la fois HR et HRV en une seule requête"""
+async def predict_both(body: Dict,
+    x_api_key: Optional[str] = Header(None)
+):
+    """Prédit à la fois HR et HRV """
+    print("Api key",API_KEY)
+    print("x_api_key",x_api_key)
     if x_api_key != API_KEY:
         raise HTTPException(status_code=401, detail="Unauthorized")
 
@@ -125,7 +130,7 @@ async def predict_both(features: List[float], x_api_key: Optional[str] = Header(
             status_code=503, 
             detail="Service unavailable - Modèles non chargés. Vérifiez les logs du serveur."
         )
-    
+    features = body["features"]
     if len(features) != len(FEATURE_COLS):
         raise HTTPException(
             status_code=400,

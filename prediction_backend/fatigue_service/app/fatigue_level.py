@@ -21,13 +21,16 @@ FEATURE_COLS = ['hr_bpm','rr_ms','speed_yds_per_s','acc_yds_per_s2']  # adapte s
 @app.on_event("startup")
 async def startup_event():
     global MODEL
-    MODEL = tf.keras.models.load_model("./app/models/hybrid_fatigue_model.keras")
+    BASE_DIR = os.path.dirname(os.path.abspath(__file__))  # Répertoire actuel
+    MODEL_PATH = os.path.join(BASE_DIR, "models", "hybrid_fatigue_model.keras")
+    MODEL = tf.keras.models.load_model(MODEL_PATH)
 
 @app.post("/predict_fatigue")
 async def predict_fatigue(
     data: List[Dict],
     x_api_key: Optional[str] = Header(None)
 ):
+    print("Api key",API_KEY)
     if x_api_key != API_KEY:
         raise HTTPException(status_code=401, detail="Unauthorized")
     # 1. Charger dans un DataFrame
