@@ -51,7 +51,45 @@ export function AlertsProvider({ children }) {
 
   const addAlert = useCallback((a) => {
     const id = a.id ?? secureId(12);
-    setAlerts((prev) => [{ ...a, id }, ...prev].slice(0, MAX_ALERTS));
+    // normalize fields for consistent UI rendering
+    const pid = a.pid ?? a.player_id ?? a.playerId ?? "unknown";
+    const rawLevel = a.level ?? null;
+    const level =
+      typeof rawLevel === "string" || typeof rawLevel === "number" ? Number(rawLevel) : null;
+    const durationMinutes =
+      a.durationMinutes ??
+      (a.delay_seconds ? Math.round(Number(a.delay_seconds) / 60) : a.durationMinutes ?? 0);
+    const startedAt = a.startedAt ?? a.timestamp ?? new Date().toISOString();
+    const triggeredAt = a.triggeredAt ?? a.received_at ?? new Date().toISOString();
+    const kind = a.kind ?? (a.type ? "webhook" : level && level > 0 ? "fatigue" : "other");
+    const subtype = a.type ?? a.subtype ?? null;
+    const source = a.source ?? null;
+    const message =
+      a.message ??
+      (a.type === "missing_data"
+        ? `Missing data from ${a.source || "unknown"} for player ${pid}`
+        : a.type === "delayed_data"
+        ? `Delayed data (${a.delay_seconds ?? "?"}s) for player ${pid}`
+        : a.msg ?? "");
+
+    setAlerts((prev) =>
+      [
+        {
+          ...a,
+          id,
+          pid,
+          level,
+          durationMinutes,
+          startedAt,
+          triggeredAt,
+          kind,
+          subtype,
+          source,
+          message,
+        },
+        ...prev,
+      ].slice(0, MAX_ALERTS)
+    );
   }, []);
 
   const clearAlerts = useCallback(() => setAlerts([]), []);

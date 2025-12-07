@@ -20,6 +20,7 @@ Coded by www.creative-tim.com
 */
 
 // Fatigue notifications page
+import React, { useEffect } from "react";
 import Grid from "@mui/material/Grid";
 import Card from "@mui/material/Card";
 import MDBox from "components/MDBox";
@@ -30,8 +31,10 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import { useAlerts } from "context/alerts";
 import RequireAuth from "components/RequireAuth";
+import { useAuth } from "context/AuthContext";
 function Notifications() {
-  const { alerts, clearAlerts, removeAlert } = useAlerts();
+  const { alerts, addAlert, clearAlerts, removeAlert } = useAlerts();
+  const { isAuthenticated, accessToken } = useAuth();
 
   const fmt = (iso) => {
     try {
@@ -40,6 +43,97 @@ function Notifications() {
       return iso;
     }
   };
+
+  // SSE: listen for backend 'alert' events and add them to alerts context
+  useEffect(() => {
+    if (!isAuthenticated) return;
+
+    let eventsUrl = "/events";
+    if (process.env.REACT_APP_API_URL) {
+      const base = process.env.REACT_APP_API_URL.replace(/\/$/, "");
+      eventsUrl = `${base}/events`;
+    }
+    if (accessToken) {
+      const sep = eventsUrl.includes("?") ? "&" : "?";
+      eventsUrl = `${eventsUrl}${sep}access_token=${encodeURIComponent(accessToken)}`;
+    }
+
+    const es = new EventSource(eventsUrl);
+
+    es.addEventListener("alert", (e) => {
+      try {
+        const data = JSON.parse(e.data || "{}");
+        const pid = data.player_id || data.playerId || data.pid || "unknown";
+        const triggered = data.received_at ?? new Date().toISOString();
+
+        // Different alert shapes depending on type
+        if (data.type === "missing_data") {
+          addAlert({
+            type: "missing_data",
+            pid,
+            player_id: data.player_id,
+            source: data.source || "unknown",
+            timestamp: data.timestamp ?? null,
+            triggeredAt: triggered,
+            message: `Missing data from ${data.source || "unknown"} for player ${pid}`,
+          });
+          return;
+        }
+
+        if (data.type === "delayed_data") {
+          addAlert({
+            type: "delayed_data",
+            pid,
+            player_id: data.player_id,
+            delay_seconds: Number(data.delay_seconds) || 0,
+            last_update: data.last_update ?? null,
+            timestamp: data.timestamp ?? null,
+            triggeredAt: triggered,
+            message: `Delayed data (${data.delay_seconds ?? "?"}s) for player ${pid}`,
+          });
+          return;
+        }
+
+        // Default: treat as generic/fatigue alert (from in-app logic)
+        const level = Number(data.level ?? data.fatigue_level ?? 0);
+        const duration = Math.round(Number(data.durationMinutes ?? data.delay_seconds ?? 0));
+        const started = data.startedAt ?? data.timestamp ?? new Date().toISOString();
+
+        addAlert({
+          type: "fatigue",
+          pid,
+          level,
+          durationMinutes: duration,
+          startedAt: started,
+          triggeredAt: triggered,
+          message: data.message ?? `Player ${pid} fatigue level ${level}`,
+        });
+      } catch (err) {
+        // ignore malformed events
+      }
+    });
+
+    es.onerror = (err) => {
+      // keep simple: log and let ncaa-dashboard handle refresh logic elsewhere
+      // a future improvement can mimic the refresh/reauth flow from ncaa-dashboard
+      // console.error('[SSE error]', err);
+    };
+
+    return () => {
+      try {
+        es.close();
+      } catch (e) {}
+    };
+  }, [isAuthenticated, accessToken, addAlert]);
+
+  // Clear notifications when user logs out
+  useEffect(() => {
+    if (!isAuthenticated) {
+      try {
+        clearAlerts();
+      } catch (e) {}
+    }
+  }, [isAuthenticated, clearAlerts]);
 
   return (
     <DashboardLayout>
@@ -73,16 +167,47 @@ function Notifications() {
                       sx={{ borderBottom: "1px solid rgba(0,0,0,0.06)" }}
                     >
                       <MDBox>
-                        <MDTypography variant="button" fontWeight="bold">
-                          Player {a.pid} — Level {a.level}
-                        </MDTypography>
-                        <MDTypography variant="caption" color="text" display="block">
-                          {a.message}
-                        </MDTypography>
-                        <MDTypography variant="caption" color="text">
-                          Started: {fmt(a.startedAt)} • Alerted: {fmt(a.triggeredAt)} • Duration:{" "}
-                          {a.durationMinutes} min
-                        </MDTypography>
+                        {/* Render different alert types */}
+                        {a.type === "missing_data" ? (
+                          <>
+                            <MDTypography variant="button" fontWeight="bold">
+                              Missing data — Player {a.pid || a.player_id}
+                            </MDTypography>
+                            <MDTypography variant="caption" color="text" display="block">
+                              Source: {a.source}
+                            </MDTypography>
+                            <MDTypography variant="caption" color="text">
+                              Timestamp: {a.timestamp ? fmt(a.timestamp) : "unknown"} • Received:{" "}
+                              {fmt(a.triggeredAt)}
+                            </MDTypography>
+                          </>
+                        ) : a.type === "delayed_data" ? (
+                          <>
+                            <MDTypography variant="button" fontWeight="bold">
+                              Delayed data — Player {a.pid || a.player_id}
+                            </MDTypography>
+                            <MDTypography variant="caption" color="text" display="block">
+                              Delay: {a.delay_seconds ?? "?"} s
+                            </MDTypography>
+                            <MDTypography variant="caption" color="text">
+                              Last update: {a.last_update ? fmt(a.last_update) : "unknown"} •
+                              Received: {fmt(a.triggeredAt)}
+                            </MDTypography>
+                          </>
+                        ) : (
+                          <>
+                            <MDTypography variant="button" fontWeight="bold">
+                              Player {a.pid} — Level {a.level}
+                            </MDTypography>
+                            <MDTypography variant="caption" color="text" display="block">
+                              {a.message}
+                            </MDTypography>
+                            <MDTypography variant="caption" color="text">
+                              Started: {fmt(a.startedAt)} • Alerted: {fmt(a.triggeredAt)} •
+                              Duration: {a.durationMinutes} min
+                            </MDTypography>
+                          </>
+                        )}
                       </MDBox>
 
                       <MDButton

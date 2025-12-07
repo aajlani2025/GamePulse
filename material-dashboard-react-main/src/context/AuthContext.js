@@ -1,10 +1,12 @@
 import React, { createContext, useContext, useState, useEffect } from "react";
 import authService from "services/authService";
 import api from "services/api";
+import { useAlerts } from "context/alerts";
 
 const AuthContext = createContext(null);
 // eslint-disable-next-line react/prop-types
 export function AuthProvider({ children }) {
+  const { clearAlerts } = useAlerts();
   const [accessToken, setAccessToken] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [approved, setApproved] = useState(null);
@@ -90,6 +92,9 @@ export function AuthProvider({ children }) {
       try {
         authService.clearLocalData();
       } catch (e) {}
+      try {
+        clearAlerts();
+      } catch (e) {}
     });
 
     return () => {
@@ -139,6 +144,9 @@ export function AuthProvider({ children }) {
       setApproved(null);
       try {
         authService.clearLocalData();
+      } catch (e) {}
+      try {
+        clearAlerts();
       } catch (e) {}
     },
     isAuthenticated,
