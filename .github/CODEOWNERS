@@ -2,14 +2,14 @@
 # Qui doit approuver selon les zones du repo
 
 # Backend
-/backend/ @aajlani2025 @nerminekabadou
+/backend/ @aajlani2025 
 
 # Frontend
-/material-dashboard-react-main/ @aajlani2025 @nerminekabadou
+/material-dashboard-react-main/ @aajlani2025 
 
 # Dossier .github (y compris workflows)
-/.github/ @aajlani2025 @nerminekabadou
-.github/workflows/ @aajlani2025 @nerminekabadou
+/.github/ @aajlani2025
+.github/workflows/ @aajlani2025 
 
 # Fallback (tout le reste)
-* @aajlani2025 @nerminekabadou
+* @aajlani2025 
