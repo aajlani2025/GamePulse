@@ -5,11 +5,11 @@
 /backend/ @aajlani2025 @nerminekabadou
 
 # Frontend
-/material-dashboard-react-main/ @aajlani2025 @nerminekabadou
+/material-dashboard-react-main/ @aajlani2025 
 
 # Dossier .github (y compris workflows)
 /.github/ @aajlani2025 @nerminekabadou
-.github/workflows/ @aajlani2025 @nerminekabadou
+.github/workflows/ @aajlani2025 
 
 # Fallback (tout le reste)
-* @aajlani2025 @nerminekabadou
+* @aajlani2025 
