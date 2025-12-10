@@ -1,6 +1,10 @@
+// server.js
 import express from "express";
 import cors from "cors";
 import pkg from "pg";
+import http from "http";
+import WebSocket, { WebSocketServer } from "ws";
+import { handleSensorMessage } from "./realtimeBuffer.js";
 
 const { Pool } = pkg;
 const app = express();
@@ -10,13 +14,10 @@ app.use(express.json());
 const PORT = process.env.PORT || 8000;
 const DATABASE_URL = process.env.DATABASE_URL;
 
-// /health: pour les probes
+// --- ROUTES API EXISTANTES ---
 app.get("/health", (_, res) => res.json({ status: "ok" }));
-
-// /api/hello: test rapide
 app.get("/api/hello", (_, res) => res.json({ message: "Hello from GamePulse API" }));
 
-// /api/ping-db: ping Timescale/Postgres si dispo
 app.get("/api/ping-db", async (_, res) => {
   if (!DATABASE_URL) return res.status(200).json({ db: "skipped (no DATABASE_URL)" });
   const pool = new Pool({ connectionString: DATABASE_URL, ssl: false });
@@ -30,4 +31,33 @@ app.get("/api/ping-db", async (_, res) => {
   }
 });
 
-app.listen(PORT, "0.0.0.0", () => console.log(`API listening on ${PORT}`));
+// --- CRÉATION DU SERVEUR HTTP ---
+const server = http.createServer(app);
+
+// --- SERVEUR WEBSOCKET ---
+const wss = new WebSocketServer({ server, path: "/ws" });
+
+wss.on("connection", (ws, req) => {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const playerId = url.searchParams.get("playerId") || "UNKNOWN";
+
+  console.log("WS CONNECTED → Player:", playerId);
+
+  ws.on("message", (data) => {
+    try {
+      const msg = JSON.parse(data.toString());
+      handleSensorMessage(playerId, msg);
+    } catch (err) {
+      console.error("Invalid WS message:", err);
+    }
+  });
+
+  ws.on("close", () => {
+    console.log("WS CLOSED → Player:", playerId);
+  });
+});
+
+// --- LANCER API + WS ---
+server.listen(PORT, "0.0.0.0", () =>
+  console.log(`GamePulse API + WebSocket listening on ${PORT}`)
+);
