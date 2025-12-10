@@ -1,4 +1,3 @@
-// server.js
 import express from "express";
 import cors from "cors";
 import pkg from "pg";
@@ -31,7 +30,7 @@ app.get("/api/ping-db", async (_, res) => {
   }
 });
 
-// --- CRÉATION DU SERVEUR HTTP ---
+// --- CRÉATION SERVEUR HTTP ---
 const server = http.createServer(app);
 
 // --- SERVEUR WEBSOCKET ---
@@ -57,7 +56,7 @@ wss.on("connection", (ws, req) => {
   });
 });
 
-// --- LANCER API + WS ---
+// --- LANCEMENT HTTP + WS ---
 server.listen(PORT, "0.0.0.0", () =>
   console.log(`GamePulse API + WebSocket listening on ${PORT}`)
 );
