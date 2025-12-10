@@ -13,10 +13,13 @@ app.use(express.json());
 const PORT = process.env.PORT || 8000;
 const DATABASE_URL = process.env.DATABASE_URL;
 
-// --- ROUTES API EXISTANTES ---
+// /health: pour les probes
 app.get("/health", (_, res) => res.json({ status: "ok" }));
+
+// /api/hello: test rapide
 app.get("/api/hello", (_, res) => res.json({ message: "Hello from GamePulse API" }));
 
+// /api/ping-db: ping Timescale/Postgres si dispo
 app.get("/api/ping-db", async (_, res) => {
   if (!DATABASE_URL) return res.status(200).json({ db: "skipped (no DATABASE_URL)" });
   const pool = new Pool({ connectionString: DATABASE_URL, ssl: false });
@@ -30,10 +33,33 @@ app.get("/api/ping-db", async (_, res) => {
   }
 });
 
-// --- CRÉATION SERVEUR HTTP ---
+// 🚀 ENDPOINT D’INGESTION MOVESENSE (HTTP, depuis n8n ou autre)
+app.post("/api/v1/ingestion/movesense", (req, res) => {
+  const payload = req.body;
+
+  console.log("📥 Movesense payload received:");
+  console.log(JSON.stringify(payload, null, 2));
+
+  return res.status(200).json({
+    status: "ok",
+    message: "Movesense data ingested",
+    received: {
+      player_id: payload.player_id,
+      session_id: payload.session_id,
+      source: payload.source,
+      context: payload.context,
+      hr_length: Array.isArray(payload.hr) ? payload.hr.length : 0,
+      imu_length: Array.isArray(payload.imu) ? payload.imu.length : 0,
+    },
+  });
+});
+
+// === 🔌 SERVEUR HTTP + WEBSOCKET ===
+
+// 1) On crée un vrai serveur HTTP autour d’Express
 const server = http.createServer(app);
 
-// --- SERVEUR WEBSOCKET ---
+// 2) On branche le serveur WebSocket sur /ws
 const wss = new WebSocketServer({ server, path: "/ws" });
 
 wss.on("connection", (ws, req) => {
@@ -45,6 +71,7 @@ wss.on("connection", (ws, req) => {
   ws.on("message", (data) => {
     try {
       const msg = JSON.parse(data.toString());
+      // msg = { type: "HR" | "IMU", ts, data: {...} }
       handleSensorMessage(playerId, msg);
     } catch (err) {
       console.error("Invalid WS message:", err);
@@ -56,7 +83,7 @@ wss.on("connection", (ws, req) => {
   });
 });
 
-// --- LANCEMENT HTTP + WS ---
-server.listen(PORT, "0.0.0.0", () =>
-  console.log(`GamePulse API + WebSocket listening on ${PORT}`)
-);
+// 3) On démarre HTTP + WS (REMPLACE app.listen)
+server.listen(PORT, "0.0.0.0", () => {
+  console.log(`GamePulse API + WebSocket listening on ${PORT}`);
+});
