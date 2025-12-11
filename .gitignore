@@ -1,1 +1,9 @@
+# Ne jamais committer les modules Node
+node_modules/
+
+# Fichiers système Windows
+desktop.ini
+
+# Optionnel : si tu ne veux PAS tracker le package-lock global
+# package-lock.json
 
