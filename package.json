@@ -5,6 +5,8 @@
   "license": "MIT",
   "scripts": {
     "postinstall": "echo \"root package.json present\""
+  },
+  "dependencies": {
+    "ws": "^8.18.3"
   }
 }
-

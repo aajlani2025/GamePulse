@@ -1,3 +1,4 @@
+// backend/server.js
 import express from "express";
 import cors from "cors";
 import pkg from "pg";
@@ -17,11 +18,17 @@ const DATABASE_URL = process.env.DATABASE_URL;
 app.get("/health", (_, res) => res.json({ status: "ok" }));
 
 // /api/hello: test rapide
-app.get("/api/hello", (_, res) => res.json({ message: "Hello from GamePulse API" }));
+app.get("/api/hello", (_, res) =>
+  res.json({ message: "Hello from GamePulse API" })
+);
 
 // /api/ping-db: ping Timescale/Postgres si dispo
 app.get("/api/ping-db", async (_, res) => {
-  if (!DATABASE_URL) return res.status(200).json({ db: "skipped (no DATABASE_URL)" });
+  if (!DATABASE_URL)
+    return res
+      .status(200)
+      .json({ db: "skipped (no DATABASE_URL)" });
+
   const pool = new Pool({ connectionString: DATABASE_URL, ssl: false });
   try {
     const r = await pool.query("SELECT NOW() as now");
@@ -54,12 +61,32 @@ app.post("/api/v1/ingestion/movesense", (req, res) => {
   });
 });
 
+// 🚀 ENDPOINT PREDICT FATIGUE (STUB)
+app.post("/predict/fatigue", (req, res) => {
+  const playerId = req.body.playerId;
+
+  // Niveau de fatigue simulé (0, 1, 2 ou 3)
+  const fatigue_level = Math.floor(Math.random() * 4);
+
+  res.json({
+    playerId,
+    fatigue_level,
+    confidence: 0.9,
+    recommendation:
+      fatigue_level <= 1
+        ? "Play"
+        : fatigue_level === 2
+        ? "Rest"
+        : "Substitute",
+  });
+});
+
 // === 🔌 SERVEUR HTTP + WEBSOCKET ===
 
-// 1) On crée un vrai serveur HTTP autour d’Express
+// on crée un vrai serveur HTTP autour d’Express
 const server = http.createServer(app);
 
-// 2) On branche le serveur WebSocket sur /ws
+// serveur WebSocket sur /ws
 const wss = new WebSocketServer({ server, path: "/ws" });
 
 wss.on("connection", (ws, req) => {
@@ -83,7 +110,8 @@ wss.on("connection", (ws, req) => {
   });
 });
 
-// 3) On démarre HTTP + WS (REMPLACE app.listen)
+// on démarre HTTP + WS
 server.listen(PORT, "0.0.0.0", () => {
   console.log(`GamePulse API + WebSocket listening on ${PORT}`);
 });
+
