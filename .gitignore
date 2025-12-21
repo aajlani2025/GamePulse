@@ -1,9 +1,25 @@
-# Ne jamais committer les modules Node
-node_modules/
+# Local backend tools / DB scripts
+backend/check-*.js
+backend/create-*.js
+backend/inspect-*.js
+backend/list-*.js
+backend/test-*.js
+backend/pgPool.js
+backend/persistFatigueEvent.js
 
-# Fichiers système Windows
-desktop.ini
+# Certs
+*.crt
+*.crt.txt
 
-# Optionnel : si tu ne veux PAS tracker le package-lock global
-# package-lock.json
+# Metrics / local data
+metrics/
+payload.json
+scripts/
 
+# Python
+.venv/
+__pycache__/
+
+# ML models
+*.pt
+*.h5
