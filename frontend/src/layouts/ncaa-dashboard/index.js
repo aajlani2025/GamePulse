@@ -9,11 +9,11 @@ import { Table, TableBody, TableCell, TableContainer, TableRow, Paper } from "@m
 
 import { useAlerts } from "context/alerts";
 import { useAuth } from "context/AuthContext";
+import { useFatigueAlerts } from "hooks/useFatigueAlerts";
 
 /* Colors and labels */
-const FAT_COLORS = { 5: "#E14C4C", 4: "#F5A623", 3: "#F6D66B", 2: "#4DC591", 1: "#B6F2C2" };
+const FAT_COLORS = { 4: "#E14C4C", 3: "#F5A623", 2: "#4DC591", 1: "#B6F2C2" };
 const FAT_LABELS = {
-  5: "Sub (F5)",
   4: "Sub (F4)",
   3: "Rest (F3)",
   2: "Play (F2)",
@@ -55,15 +55,6 @@ function buildIndex(groups) {
   });
   return idx;
 }
-
-/* Alert thresholds */
-const CRIT_4_HOLD_MIN = 0.1; // minutes at level-4 before alert
-const CRIT_5_HOLD_MIN = 0.05; // minutes at level-5 before alert
-const CRIT_4_HOLD_MS = CRIT_4_HOLD_MIN * 60 * 1000; // milliseconds
-const CRIT_5_HOLD_MS = CRIT_5_HOLD_MIN * 60 * 1000; // milliseconds
-const ALERT_SNOOZE_MIN = 2; // minutes per-level snooze
-const ALERT_SNOOZE_MS = ALERT_SNOOZE_MIN * 60 * 1000; // milliseconds
-const ALERT_SCAN_MS = 5000; // milliseconds
 
 export default function NcaaDashboard() {
   // enable debug logging by setting localStorage.setItem('ncaa_debug','1') in browser
@@ -180,7 +171,7 @@ export default function NcaaDashboard() {
           metrics?.fatigue_level ??
           metrics?.fatique_level
       ); // tolerate misspelling
-      if ([1, 2, 3, 4, 5].includes(lvl)) {
+      if ([1, 2, 3, 4].includes(lvl)) {
         setLevels((prev) => ({ ...prev, [pid]: lvl }));
         // Keep the levelsRef in sync immediately
         try {
@@ -268,113 +259,14 @@ export default function NcaaDashboard() {
     } catch {}
   }, [isAuthenticated]);
 
-  /* Alerts: level 4 & 5 with separate timers and per-level snooze; escalate 4→5 */
-  const [alert, setAlert] = useState({ open: false, pid: null, minutes: "0.0", level: null });
-
-  const level4SinceRef = useRef(Object.fromEntries(ALL_IDS.map((id) => [id, 0])));
-  const level5SinceRef = useRef(Object.fromEntries(ALL_IDS.map((id) => [id, 0])));
-
-  // per-player, per-level snooze timestamps: { [pid]: {4:ts, 5:ts} }
-  const lastAlertAtRef = useRef(Object.fromEntries(ALL_IDS.map((id) => [id, { 4: 0, 5: 0 }])));
-
-  // last alerted level to allow escalation
-  const lastAlertLevelRef = useRef(Object.fromEntries(ALL_IDS.map((id) => [id, 0])));
-
-  function triggerAlert(pid, since, now, level) {
-    const minutes = ((now - since) / 60000).toFixed(1);
-
-    setAlert({ open: true, pid, minutes, level });
-    lastAlertAtRef.current[pid][level] = now; // Only snooze THIS level
-    lastAlertLevelRef.current[pid] = level;
-
-    if (DEBUG) {
-      console.debug("ALERT", {
-        pid,
-        level,
-        minutes,
-        since,
-        now,
-        lastAlertAt: lastAlertAtRef.current[pid],
-      });
-    }
-
-    addAlert({
-      pid,
-      level,
-      durationMinutes: Number(minutes),
-      startedAt: new Date(since).toISOString(),
-      triggeredAt: new Date(now).toISOString(),
-      message: `Player ${pid} has been at fatigue level ${level} for ${minutes} min while on field.`,
-    }); // log alert
-
-    // Reset the timer that triggered this alert and handle escalation
-    if (level === 5) {
-      level5SinceRef.current[pid] = 0;
-      // Also snooze level 4 to prevent immediate follow-up
-      lastAlertAtRef.current[pid][4] = now;
-      level4SinceRef.current[pid] = 0;
-    } else if (level === 4) {
-      level4SinceRef.current[pid] = 0;
-    }
-  }
-
-  useEffect(() => {
-    const id = setInterval(() => {
-      const now = Date.now();
-
-      for (const pid of ALL_IDS) {
-        const currentLevel = levelsRef.current[pid];
-        const onField = inFieldRef.current[pid];
-
-        // Reset timers if not on field or below threshold
-        if (!onField || currentLevel < 4) {
-          level4SinceRef.current[pid] = 0;
-          level5SinceRef.current[pid] = 0;
-          lastAlertLevelRef.current[pid] = 0;
-          continue;
-        }
-
-        // Update timers based on current state
-        if (currentLevel === 4 && !level4SinceRef.current[pid]) {
-          level4SinceRef.current[pid] = now;
-        }
-        if (currentLevel === 5 && !level5SinceRef.current[pid]) {
-          level5SinceRef.current[pid] = now;
-        }
-
-        // Clear lower level timer if at higher level
-        if (currentLevel === 5) {
-          level4SinceRef.current[pid] = 0;
-        }
-
-        // Check alerts - Level 5 first (higher priority)
-        if (currentLevel === 5 && level5SinceRef.current[pid]) {
-          const since5 = level5SinceRef.current[pid];
-          const longEnough5 = now - since5 >= CRIT_5_HOLD_MS;
-          const snoozed5 = now - (lastAlertAtRef.current[pid][5] || 0) >= ALERT_SNOOZE_MS;
-          const escalatedFrom4 = lastAlertLevelRef.current[pid] === 4;
-
-          if (longEnough5 && (snoozed5 || escalatedFrom4)) {
-            triggerAlert(pid, since5, now, 5);
-            continue; // Skip level 4 check for this player
-          }
-        }
-
-        // Check Level 4 alerts
-        if (currentLevel === 4 && level4SinceRef.current[pid]) {
-          const since4 = level4SinceRef.current[pid];
-          const longEnough4 = now - since4 >= CRIT_4_HOLD_MS;
-          const snoozed4 = now - (lastAlertAtRef.current[pid][4] || 0) >= ALERT_SNOOZE_MS;
-
-          if (longEnough4 && snoozed4) {
-            triggerAlert(pid, since4, now, 4);
-          }
-        }
-      }
-    }, ALERT_SCAN_MS);
-
-    return () => clearInterval(id);
-  }, []);
+  // Use fatigue alerts hook
+  const { alert, closeAlert } = useFatigueAlerts({
+    playerIds: ALL_IDS,
+    levelsRef,
+    inFieldRef,
+    addAlert,
+    debug: DEBUG,
+  });
 
   /* layout helpers */
   const rowXFit = (n, minX = 50, maxX = 750) => {
@@ -408,8 +300,8 @@ export default function NcaaDashboard() {
 
       {/* Single toast that adapts to level */}
       <MDSnackbar
-        color={alert.level === 5 ? "error" : "warning"}
-        icon={alert.level === 5 ? "error" : "warning"}
+        color={alert.level === 4 ? "error" : "warning"}
+        icon={alert.level === 4 ? "error" : "warning"}
         title="Fatigue Alert"
         content={
           alert.pid
@@ -418,8 +310,8 @@ export default function NcaaDashboard() {
         }
         dateTime=""
         open={alert.open}
-        onClose={() => setAlert((a) => ({ ...a, open: false }))}
-        close={() => setAlert((a) => ({ ...a, open: false }))}
+        onClose={closeAlert}
+        close={closeAlert}
         bgWhite
       />
 

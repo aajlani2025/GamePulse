@@ -49,7 +49,7 @@ async function postFatigue(req, res) {
     return res.sendStatus(204);
   }
 
-  if (provided_fatigue_level < 1 || provided_fatigue_level > 5) {
+  if (provided_fatigue_level < 1 || provided_fatigue_level > 4) {
     logger.warn(
       { pid: `P${playerNum}`, provided_fatigue_level },
       "producer sent out-of-range fatigue_level — suppressing broadcast"

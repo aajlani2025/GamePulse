@@ -84,7 +84,14 @@ function Sidenav({ color, brandName, routes, ...rest }) {
   }, [dispatch, location]);
 
   // Render a limited set of routes for the Sidenav (only the main app items)
-  const visibleKeys = ["profile", "notifications", "ncaa-dashboard", "reset-password", "logout"];
+  const visibleKeys = [
+    "profile",
+    "notifications",
+    "ncaa-dashboard",
+    "player-profiles",
+    "reset-password",
+    "logout",
+  ];
   const filteredRoutes = routes.filter((r) => visibleKeys.includes(r.key));
 
   // Render the filtered routes from routes.js

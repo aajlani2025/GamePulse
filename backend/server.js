@@ -19,6 +19,7 @@ const sseRoutes = require("./routes/sseRoutes");
 const authRoutes = require("./routes/authRoutes");
 const webhookRoutes = require("./routes/WebhookAlerteRoute");
 const pushPositionRoutes = require("./routes/pushPositionRoutes");
+const playersRoutes = require("./routes/playersRoutes");
 
 const app = express();
 
@@ -62,6 +63,8 @@ app.use("/push", rateLimit, sseRoutes);
 // Position-only pushes (rate-limited)
 app.use("/push_position", rateLimit, pushPositionRoutes);
 app.use("/webhook", webhookRoutes);
+// Players endpoint (authenticated)
+app.use("/players", playersRoutes);
 // ---------- Error Handling ----------
 app.use(errorHandler);
 

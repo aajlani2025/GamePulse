@@ -22,6 +22,7 @@ import SignOut from "layouts/authentication/logout";
 import Approval from "layouts/approval";
 import Cover from "layouts/authentication/reset-password/cover";
 import RequireAuth from "components/RequireAuth";
+import PlayerProfile from "layouts/playerProfile";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
@@ -49,6 +50,18 @@ const routes = [
     component: (
       <RequireAuth>
         <Notifications />
+      </RequireAuth>
+    ),
+  },
+  {
+    type: "collapse",
+    name: "Player Profiles",
+    key: "player-profiles",
+    icon: <Icon fontSize="small">people</Icon>,
+    route: "/player-profiles",
+    component: (
+      <RequireAuth>
+        <PlayerProfile />
       </RequireAuth>
     ),
   },
